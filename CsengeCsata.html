@@ -185,6 +185,9 @@
             transform: scale(0.98);
             box-shadow: 2px 2px 0 var(--ink);
         }
+        .sorsol-btn-block.btn-result-state {
+            background-color: var(--red);
+        }
 
         .module-label {
             font-size: 1.15rem;
@@ -452,20 +455,22 @@
 
         .game-over-box {
             margin-top: 12px;
-            padding: 12px;
+            padding: 16px;
             background-color: var(--green-soft);
-            border: 2px dashed var(--green);
+            border: 2.5px dashed var(--green);
             border-radius: 14px 8px 16px 8px / 8px 16px 8px 14px;
         }
         .game-over-title {
             font-family: var(--font-hand);
             color: var(--red);
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 700;
+            margin-bottom: 6px;
         }
         .game-over-winner {
             color: var(--green);
             font-weight: 700;
+            font-size: 1.1rem;
             margin-top: 4px;
         }
 
@@ -704,7 +709,7 @@
         <div class="main-grid">
             <!-- BAL OLDAL -->
             <div class="left-col">
-                <button class="sorsol-btn-block" onclick="sorsolas()">
+                <button id="sorsolBtn" class="sorsol-btn-block" onclick="sorsolas()">
                     <svg width="66" height="60" viewBox="0 0 66 60" aria-hidden="true">
                         <g fill="none" stroke="#100D0F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
                             <path d="M8 16 Q6 10 12 10 L30 8 Q35 8 35 14 L37 46 Q37 52 31 52 L14 54 Q8 54 8 48 Z"
@@ -1316,6 +1321,7 @@ HŰTŐ/FRIZSIDER`;
 
     const textarea = document.getElementById('wordList');
     let drawnCardRecords = [];
+    let isGameFinished = false;
     let isDiceLocked = false;
     let isRolling = false;
     let activeView = 'game';
@@ -1349,6 +1355,7 @@ HŰTŐ/FRIZSIDER`;
     }
 
     renderPlayersUI();
+    updateSorsolBtnUI();
 
     function getMaxDraws() {
         const count = players.length;
@@ -1471,6 +1478,7 @@ HŰTŐ/FRIZSIDER`;
         }
 
         renderPlayersUI();
+        updateSorsolBtnUI();
     }
 
     function resetAllPlayers() {
@@ -1479,8 +1487,18 @@ HŰTŐ/FRIZSIDER`;
             { name: "", score: 0 },
             { name: "", score: 0 }
         ];
+        drawnCardRecords = [];
+        isGameFinished = false;
         localStorage.removeItem('mySavedPlayerNames');
         renderPlayersUI();
+        updateSorsolBtnUI();
+        resetDice();
+        document.getElementById('resultDisplay').innerHTML = `
+            <div class="section-header-row">
+                <span class="section-title-text">Kártya</span>
+            </div>
+            <span class="empty-hint">Nyomj a zöld gombra egy kártya húzásához!</span>`;
+        updateHistoryUI();
     }
 
     function addEmptyPlayerRow() {
@@ -1556,7 +1574,7 @@ HŰTŐ/FRIZSIDER`;
     }
 
     function togglePlayerScore(index) {
-        if (!isPlayersSaved || drawnCardRecords.length === 0) return;
+        if (!isPlayersSaved || drawnCardRecords.length === 0 || isGameFinished) return;
 
         const currentCardRecord = drawnCardRecords[drawnCardRecords.length - 1];
         if (!currentCardRecord.scoredPlayers) {
@@ -1580,10 +1598,6 @@ HŰTŐ/FRIZSIDER`;
 
         renderPlayersUI();
         updateHistoryUI();
-
-        if (drawnCardRecords.length >= getMaxDraws()) {
-            renderGameOver();
-        }
     }
 
     function renderPlayersUI() {
@@ -1620,18 +1634,18 @@ HŰTŐ/FRIZSIDER`;
                 `;
             } else {
                 let isScoredInCurrentCard = false;
-                if (drawnCardRecords.length > 0) {
+                if (drawnCardRecords.length > 0 && !isGameFinished) {
                     const currentCardRecord = drawnCardRecords[drawnCardRecords.length - 1];
                     if (currentCardRecord.scoredPlayers && currentCardRecord.scoredPlayers.includes(p.name)) {
                         isScoredInCurrentCard = true;
                     }
                 }
 
-                const selectableClass = (drawnCardRecords.length > 0) ? "selectable" : "";
+                const selectableClass = (drawnCardRecords.length > 0 && !isGameFinished) ? "selectable" : "";
                 const scoredClass = isScoredInCurrentCard ? "scored" : "";
 
                 html += `
-                    <div class="item-row ${selectableClass} ${scoredClass}" ${drawnCardRecords.length > 0 ? `onclick="togglePlayerScore(${idx})"` : ''} title="${drawnCardRecords.length > 0 ? 'Kattints a pontadáshoz/visszavonáshoz' : ''}">
+                    <div class="item-row ${selectableClass} ${scoredClass}" ${(drawnCardRecords.length > 0 && !isGameFinished) ? `onclick="togglePlayerScore(${idx})"` : ''} title="${(drawnCardRecords.length > 0 && !isGameFinished) ? 'Kattints a pontadáshoz/visszavonáshoz' : ''}">
                         <span class="row-num">${num}.</span>
                         <span class="player-name-text">${safeName}</span>
                         <span class="player-score-badge">${p.score} pont</span>
@@ -1651,7 +1665,45 @@ HŰTŐ/FRIZSIDER`;
         listContainer.innerHTML = html;
     }
 
+    function updateSorsolBtnUI() {
+        const btn = document.getElementById('sorsolBtn');
+        const maxDraws = getMaxDraws();
+
+        if (isGameFinished) {
+            btn.className = "sorsol-btn-block btn-result-state";
+            btn.innerHTML = `
+                <span style="font-size: 3rem; line-height: 1;">🏆</span>
+                <div class="module-label">Játék véget ért!</div>
+            `;
+            btn.style.cursor = "default";
+        } else if (drawnCardRecords.length > 0 && drawnCardRecords.length === maxDraws) {
+            btn.className = "sorsol-btn-block btn-result-state";
+            btn.innerHTML = `
+                <span style="font-size: 3.2rem; line-height: 1;">🎉</span>
+                <div class="module-label">Végeredmény</div>
+            `;
+            btn.style.cursor = "pointer";
+        } else {
+            btn.className = "sorsol-btn-block";
+            btn.innerHTML = `
+                <svg width="66" height="60" viewBox="0 0 66 60" aria-hidden="true">
+                    <g fill="none" stroke="#100D0F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+                        <path d="M8 16 Q6 10 12 10 L30 8 Q35 8 35 14 L37 46 Q37 52 31 52 L14 54 Q8 54 8 48 Z"
+                              fill="#FFFFFF" transform="rotate(-8 22 31)"/>
+                        <path d="M28 12 Q27 6 33 6 L51 6 Q57 6 57 12 L57 46 Q57 52 51 52 L34 52 Q28 52 28 46 Z" fill="#FFFFFF"/>
+                        <path d="M34 16 h16 M34 24 h16 M34 32 h11"/>
+                        <circle cx="49" cy="41" r="4.5" fill="#009ADB" stroke="#100D0F" stroke-width="2"/>
+                    </g>
+                </svg>
+                <div class="module-label">Kártya sorsolása!</div>
+            `;
+            btn.style.cursor = "pointer";
+        }
+    }
+
     function sorsolas() {
+        if (isGameFinished) return;
+
         if (!isPlayersSaved) {
             alert("Kérlek, először mentsd el a játékosokat a Mentés gombra kattintva!");
             return;
@@ -1659,8 +1711,12 @@ HŰTŐ/FRIZSIDER`;
 
         const maxDraws = getMaxDraws();
 
-        if (drawnCardRecords.length >= maxDraws) {
+        // Ha a 12. (vagy utolsó) körben vagyunk ÉS rányomunk a "Végeredmény" gombra:
+        if (drawnCardRecords.length === maxDraws) {
+            isGameFinished = true;
             renderGameOver();
+            updateSorsolBtnUI();
+            renderPlayersUI();
             return;
         }
 
@@ -1687,7 +1743,10 @@ HŰTŐ/FRIZSIDER`;
         }
 
         if (availableIndices.length === 0) {
+            isGameFinished = true;
             renderGameOver();
+            updateSorsolBtnUI();
+            renderPlayersUI();
             return;
         }
 
@@ -1705,11 +1764,7 @@ HŰTŐ/FRIZSIDER`;
 
         resetDice();
         renderActiveCard(record);
-
-        if (drawnCardRecords.length === maxDraws) {
-            document.getElementById('resultDisplay').innerHTML += getGameOverHtml();
-        }
-
+        updateSorsolBtnUI();
         updateHistoryUI();
         renderPlayersUI();
     }
@@ -1718,7 +1773,7 @@ HŰTŐ/FRIZSIDER`;
         const resultBox = document.getElementById('resultDisplay');
         resultBox.innerHTML = `
             <div class="section-header-row">
-                <span class="section-title-text">Kártya</span>
+                <span class="section-title-text">Végeredmény</span>
             </div>
             ${getGameOverHtml()}
         `;
@@ -1751,7 +1806,7 @@ HŰTŐ/FRIZSIDER`;
 
         return `
             <div class="game-over-box">
-                <div class="game-over-title">A játéknak vége!</div>
+                <div class="game-over-title">Játék vége!</div>
                 <div class="game-over-winner">${winnerText}</div>
             </div>
         `;
@@ -1792,7 +1847,7 @@ HŰTŐ/FRIZSIDER`;
     }
 
     function toggleWordSelection(wordIdx) {
-        if (drawnCardRecords.length === 0) return;
+        if (drawnCardRecords.length === 0 || isGameFinished) return;
 
         const currentRecord = drawnCardRecords[drawnCardRecords.length - 1];
         const clickedWord = currentRecord.words[wordIdx];
@@ -1804,11 +1859,6 @@ HŰTŐ/FRIZSIDER`;
         }
 
         renderActiveCard(currentRecord);
-
-        if (drawnCardRecords.length >= getMaxDraws()) {
-            document.getElementById('resultDisplay').innerHTML += getGameOverHtml();
-        }
-
         updateHistoryUI();
     }
 
