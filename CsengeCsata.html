@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firka FUTAM - Kártyasorsoló és Játékszabály</title>
     <style>
-        /* 
-           UNIFORM BETŰMÉRETEK A PROJEKTBEN (MAXIMUM 3 SMÁRT):
-           1. --fs-title:  1.5rem (Főcímsorok)
-           2. --fs-header: 1.05rem (Szekció/Kártya/Játékosok/Kocka címsorok & Gombok)
-           3. --fs-base:   0.9rem (Sorkereső elemek, inputok, gombok feliratai, szövegek)
-        */
         :root {
             --fs-title: 1.5rem;
             --fs-header: 1.05rem;
@@ -208,7 +202,6 @@
             box-sizing: border-box;
         }
 
-        /* EGYSÉGES FEJLÉC SOROK ÉS VÁLASZVONALAK */
         .section-header-row {
             display: flex;
             justify-content: space-between;
@@ -269,6 +262,28 @@
             border: 1px solid #e0e0e0;
             min-height: 38px;
             box-sizing: border-box;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+
+        .item-row.dragging {
+            opacity: 0.4;
+            background-color: #e9ecef;
+            border: 2px dashed #007bff;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            color: #aaa;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0 2px;
+        }
+        .drag-handle:hover {
+            color: #333;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
         }
 
         .item-row.dashed-empty {
@@ -323,7 +338,6 @@
 
         .item-row.selectable {
             cursor: pointer;
-            transition: all 0.2s;
         }
         .item-row.selectable:hover {
             background-color: #f1f8ff;
@@ -512,20 +526,43 @@
             font-size: var(--fs-base);
         }
 
+        .db-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
         .file-btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background-color: #007bff;
             color: white;
-            padding: 10px 18px;
+            padding: 8px 14px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             font-size: var(--fs-base);
-            margin-bottom: 10px;
+            border: none;
+            transition: background-color 0.2s;
         }
         .file-btn:hover {
             background-color: #0056b3;
         }
+        .file-btn.append-btn {
+            background-color: #28a745;
+        }
+        .file-btn.append-btn:hover {
+            background-color: #218838;
+        }
+        .file-btn.reset-btn {
+            background-color: #dc3545;
+        }
+        .file-btn.reset-btn:hover {
+            background-color: #bd2130;
+        }
+
         input[type="file"] {
             display: none;
         }
@@ -547,7 +584,7 @@
 <div class="container">
     <!-- FEJLÉC ÉS FIX MÉRETŰ JOBB FELSŐ GOMBOK -->
     <div class="header">
-        <h2 class="title">🎯 Firka FUTAM</h2>
+        <h2 class="title">🎯 FirkaFUTAM</h2>
         <div class="top-nav">
             <button id="btnRules" class="nav-btn" onclick="switchView('rules')">📖 Játékszabályok</button>
             <button id="btnDb" class="nav-btn" onclick="switchView('db')">📝 Kártyaadatbázis</button>
@@ -670,14 +707,29 @@
     <div id="dbView" class="view-panel">
         <div class="module-content">
             <div class="module-header-title">📝 Kártyaadatbázis (.txt)</div>
-            <label for="fileInput" class="file-btn">📁 Új .txt fájl betöltése</label>
-            <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
+            
+            <div class="db-toolbar">
+                <label for="fileInput" class="file-btn">📁 Új .txt fájl betöltése</label>
+                <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
+
+                <label for="appendFileInput" class="file-btn append-btn">➕ .txt fájl hozzáadása a mostaniakhoz</label>
+                <input type="file" id="appendFileInput" accept=".txt" onchange="appendFile(event)">
+
+                <button class="file-btn reset-btn" onclick="resetDefaultWords()">🔄 Alaphelyzet</button>
+            </div>
 
             <p style="margin-top: 5px; font-size: var(--fs-base); color: #666;">
                 A kártyákat <code>---</code> sorok választják el egymástól. A szövegdoboz közvetlenül szerkeszthető!
             </p>
 
-            <textarea id="wordList">*HÁRFA
+            <textarea id="wordList"></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    // TELJES ALAPÉRTELMEZETT KÁRTYA-ADATBÁZIS (56 KÁRTYA)
+    const DEFAULT_WORD_DATABASE = `*HÁRFA
 SZEKÉR/HINTÓ
 SZOMSZÉD
 INTERNET
@@ -755,12 +807,384 @@ KRUMPLI/BURGONYA
 PORSZÍVÓ
 RETIKÜL
 *VÍZSZERELŐ
-PINGPONG/ASZTALITENISZ</textarea>
-        </div>
-    </div>
-</div>
+PINGPONG/ASZTALITENISZ
+---
+*FÉLSZIGET
+LABIRINTUS
+PAPAGÁJ
+GYALOGOS
+KAPCSOLÓ
+TROLL
+ABAKUSZ
+---
+JÉGCSAP
+SÁL
+KANYON/SZURDOK
+JÉGHEGY
+KENDŐ
+*ÉSZAKI-SARK
+VÖLGY
+---
+ÜVEGHÁZ
+*SÁRKÁNYREPÜLŐ
+FÜGGŐÁGY
+EJTŐERNYŐ
+KORALL
+RÓZSA
+GOMBA
+---
+LÓ
+*DÍJUGRATÁS
+FEJHALLGATÓ
+SZAMÁR/ŐSZVÉR
+RÁDIÓ
+HANGSZÓRÓ
+MIKROFON
+---
+BAJUSZ
+HALLÓKÉSZÜLÉK
+*TOKA
+MASZK
+ORRCSEPP
+MÉRLEG
+ORRSZŐR
+---
+*ÜVEGES TÁNC
+IKERPÁR/IKREK
+BABA/CSECSEMŐ
+PELENKA
+BABAKOCSI
+BÉBIÉTEL
+JÁTSZÓTÉR
+---
+MÉZESKALÁCS HÁZIKÓ
+HÚSVÉTI TOJÁS
+*TURISTA
+UGRÓKÖTÉL
+TÜKÖRTOJÁS
+KÖTÉL
+KARÁCSONY
+---
+KASTÉLY
+TŰZOLTÓKÉSZÜLÉK
+BEJÁRAT/KAPU
+FÜSTJELZŐ
+HOMOKVÁR
+*VÁRÁROK
+TŰZIJÁTÉK
+---
+TEJSZÍNHAB
+BOKSZ/ÖKÖLVÍVÁS
+CSENGŐ/KAPUCSENGŐ
+*VIKING
+ARANY
+GYÓGYSZER/TABLETTA/ORVOSSÁG
+GYÁR
+---
+MENTŐMELLÉNY
+STRAND
+SÓ
+*OLAJ
+PART/TENGERPART
+HORGÁSZBOT
+BÚVÁR
+---
+SPAGETTI
+PIZZA
+*SZUSI
+HALRUDACSKA
+PULYKA
+ERŐS PAPRIKA/HEGYES ERŐS
+SZAKÁCS/SÉF
+---
+KÚT
+HELIKOPTER
+TANYA
+PILÓTA
+ISTÁLLÓ
+DRÓN
+*LÉGHAJÓ
+---
+SZELLEM
+BOSZORKÁNY
+ZOMBI
+SZIGET
+*ATLANTISZ
+TÉRKÉP
+HALLOWEEN
+---
+*NAPELEM
+KIRÁLYLÁNY
+PARLAMENT/ORSZÁGHÁZ
+KIRÁLYNŐ
+ASZTALOS
+KIRÁLY
+LAKÁS
+---
+*HINTASZÉK
+KÖNYV
+FÜGGÖNY
+SZÁMÍTÓGÉP/LAPTOP
+KÖNYVMOLY
+ÚJSÁG/MAGAZIN
+NYOMTATÓ
+---
+FOGPISZKÁLÓ
+CSÓK
+FOGSZABÁLYZÓ
+*SIKOLY
+FOGORVOS
+FOGKRÉM
+NYELV
+---
+MAMUT
+PIZSAMA
+BÉKA
+FRIZBI
+*MÚMIA
+BOWLING/TEKE
+RÓKA
+---
+SZÁJHARMONIKA
+EGYÜTTES/BANDA/ZENEKAR
+HEGEDŰ
+*FEKVŐRENDŐR
+DOBVERŐ
+ÚT/SÁV
+CSÖRGŐDOB/DOB
+---
+TIGRIS
+KUTYA
+*BUNGEE JUMPING
+TRAMBULIN
+MACSKAKAJA
+KUTYAHÁZ
+FARKAS
+---
+SZÁMSZERÍJ
+GYÜMÖLCS
+PINGVIN
+*LIMBÓ
+SZÁNKÓ/SZÁN
+KÓRUS
+SKORPIÓ
+---
+BILINCS
+SÍUGRÁS
+FOGOLY/RAB
+*SÍFELVONÓ
+CSONTVÁZ
+RENDŐRSÉG
+VÍZISÍ
+---
+GARDRÓB
+BŐR/PRÉM/BUNDA
+*TURBÁN
+BÚGÓCSIGA
+KABÁT
+SZENNYES RUHA
+KÖPENY/PALÁST
+---
+BABAHÁZ
+BENZINKÚT
+ÓRIÁS
+MOZGÓLÉPCSŐ
+DÁRDA/LÁNDZSA
+*PIERCING
+STOPPERÓRA
+---
+WC-PAPÍR
+*LÁNCFŰRÉSZ
+CSAVARHÚZÓ
+WC-KEFE
+SZERSZÁMOS LÁDA
+WC-CSÉSZE
+FÚRÓ
+---
+MAG/VETŐMAG
+KUKORICA
+HÉJ/KENYÉRHÉJ
+REGGELI
+BÚZA/GABONA
+*RULETT
+KENYÉR
+---
+SPORTÓRA/OKOSÓRA
+SÜTŐ
+SZÖKŐKÚT
+*NAPFOGYATKOZÁS
+SERPENYŐ
+SZOBOR
+SAKKÓRA
+---
+BOGÁR
+SZÚNYOG
+DISZKÓGÖMB
+*TITANIC
+PILLANGÓ/LEPKE
+HANGYABOLY
+SZÖCSKE
+---
+TEHÉN
+BETÖRŐ/RABLÓ
+RÉNSZARVAS
+*PÉNZTÁRGÉP
+PÉNZTÁRCA
+MOSÓMEDVE
+SZARVAS
+---
+GYÖKÉR
+BAGOWL
+*CSERKÉSZ
+ÉTTEREM/VENDÉGLŐ
+HARKÁLY/FAKOPÁNCS
+KERT/UDVAR
+PIKNIK
+---
+FÜRDŐKÁD
+TELEFONFÜLKE
+ZUHANYZÓ
+*PEZSGŐFÜRDŐ
+TÖRÜLKÖZŐ
+SELFIE
+POKÉMON
+---
+HÁTIZSÁK
+CHIPS
+VÍZILÓ
+HÁT
+PATTOGATOTT KUKORICA
+RÁNTOTT HÚS
+*BUMERÁNG
+---
+LÁBGOMBA
+KINCSESLÁDA
+KALÓZ
+RÁNC
+KAPITÁNY
+KALÓZHAJÓ
+*TOTEM
+---
+LÉGKONDI
+HÓFEHÉRKE
+FÜTTY
+*TORNÁDÓ/FORGÓSZÉL
+SNOWBOARD/HÓDESZKA
+HAJSZÁRÍTÓ
+VENTILÁTOR
+---
+EMELETES ÁGY
+*XILOFON
+ÁLOM/RÉMÁLOM
+HOTEL/MOTEL/SZÁLLÓ
+ZONGORA
+PÁRNA
+HÁLÓZSÁK
+---
+LEJTŐ
+KŐ/SZIKLA
+*KÖTÉLPÁLYA
+LÁVA
+KUNYHÓ/HÜTTE
+HEGYMÁSZÓ
+TÚRA/TÚRÁZÁS
+---
+APA
+*PÁRIZS
+ESKÜVŐ
+KAMERA
+KÁBEL
+SZEMÜVEGLENCSE
+TÁVIRÁNYÍTÓ
+---
+CSIGA
+*MAGASVASÚT
+RÁK/TARISZNYARÁK
+ÁLLOMÁS
+GARNÉLARÁK
+TROLIBUSZ
+METRÓ
+---
+*SVÉDASZTAL
+UBORKA
+BÜFÉ/GYORSBÜFÉ/FALATOZÓ
+BROKKOLI
+BACON/SZALONNA
+SALÁTA
+STEAK/SÜLT HÚS
+---
+TÜKÖR
+SÖR/DOBOZOS SÖR
+NYÁL
+PUMPA
+MASSZÁZS/MASSZŐR
+TETOVÁLÁS
+*RÖNTGEN
+---
+REPÜLŐ SZŐNYEG
+PAPUCS/MAMUSZ
+*FESTŐPALETTA/PALETTA
+AGY
+SZANDÁL
+KOPONYA
+BŰVÉSZ
+---
+ELEKTROMOS AUTÓ
+GARÁZS
+AUTÓMOSÓ
+FORGALMI DUGÓ
+*KARAVÁN
+TAXI
+AUTÓBALESET
+---
+SZŐLŐ
+FŰNYÍRÓ
+ROMOK/ROM
+HOMOKOZÓ
+*TÜNTETÉS
+FEHÉRNEMŰ
+TRICIKLI
+---
+RADÍR
+TÁBLA/ISKOLAI TÁBLA
+TOLLTARTÓ
+LEMEZJÁTSZÓ
+*DJ/LEMEZLOVAS
+HEGYEZŐ
+ISKOLA
+---
+RÖPLABDA
+*VÍZILABDA
+TOLLASLABDA
+BRONZÉREM
+BASEBALL
+MEDÁL/ÉREM
+ÜTŐ
+---
+VIZES/NEDVES
+FOLYÓ/PATAK
+MECCS
+VÍZESÉS
+TÓ
+*CSOCSÓ
+GÁT
+---
+*DARTS
+VÍZI CSÚSZDA
+SZAPPAN
+ORVOS
+CSÚSZDA
+SAMPON
+ÁPOLÓNŐ/ÁPOLÓ
+---
+RESZELŐ/SAJTRESZELŐ
+PIRÍTÓS
+TERÍTŐ
+SZALVÉTA
+*BÁR/KOCSMA
+KONYHA
+HŰTŐ/FRIZSIDER`;
 
-<script>
     const textarea = document.getElementById('wordList');
     
     let drawnCardRecords = [];
@@ -776,10 +1200,15 @@ PINGPONG/ASZTALITENISZ</textarea>
     ];
     let isPlayersSaved = false;
 
+    // DRAG & DROP SESEGÉDVÁLTOZÓK
+    let draggedPlayerIdx = null;
+
     // Kártya-adatbázis betöltése
     const savedWords = localStorage.getItem('myWordDatabase');
     if (savedWords) {
         textarea.value = savedWords;
+    } else {
+        textarea.value = DEFAULT_WORD_DATABASE;
     }
 
     // Előző játékról elmentett JÁTÉKOSNEVEK betöltése
@@ -795,6 +1224,15 @@ PINGPONG/ASZTALITENISZ</textarea>
     }
 
     renderPlayersUI();
+
+    // Lépésszám kiszámítása: 3-4 főnél fixen 12 húzás, felette játékosszám * 2
+    function getMaxDraws() {
+        const count = players.length;
+        if (count <= 4) {
+            return 12;
+        }
+        return count * 2;
+    }
 
     function switchView(targetView) {
         const btnRules = document.getElementById('btnRules');
@@ -839,6 +1277,7 @@ PINGPONG/ASZTALITENISZ</textarea>
         }
     }
 
+    /* KÁRTYAADATBÁZIS FÁJLKEZELÉS */
     function loadFile(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -847,8 +1286,37 @@ PINGPONG/ASZTALITENISZ</textarea>
         reader.onload = function(e) {
             textarea.value = e.target.result;
             localStorage.setItem('myWordDatabase', e.target.result);
+            event.target.value = '';
         };
         reader.readAsText(file, 'UTF-8');
+    }
+
+    function appendFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const currentContent = textarea.value.trim();
+            const newContent = e.target.result.trim();
+
+            if (currentContent.length > 0 && newContent.length > 0) {
+                textarea.value = currentContent + "\n---\n" + newContent;
+            } else {
+                textarea.value = currentContent || newContent;
+            }
+
+            localStorage.setItem('myWordDatabase', textarea.value);
+            event.target.value = '';
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function resetDefaultWords() {
+        if (confirm("Biztosan visszaállítod az adatbázist az eredeti, gyári kártyákra?")) {
+            textarea.value = DEFAULT_WORD_DATABASE;
+            localStorage.setItem('myWordDatabase', DEFAULT_WORD_DATABASE);
+        }
     }
 
     function parseCards(text) {
@@ -863,11 +1331,11 @@ PINGPONG/ASZTALITENISZ</textarea>
     function toggleSaveEditPlayers() {
         if (!isPlayersSaved) {
             // MENTÉS
-            const inputs = document.querySelectorAll('.player-name-input');
+            syncInputValuesToPlayers();
             let newPlayers = [];
 
-            inputs.forEach(input => {
-                const val = input.value.trim();
+            players.forEach(p => {
+                const val = p.name ? p.name.trim() : "";
                 if (val !== "") {
                     newPlayers.push({ name: val, score: 0 });
                 }
@@ -904,6 +1372,7 @@ PINGPONG/ASZTALITENISZ</textarea>
 
     function addEmptyPlayerRow() {
         if (players.length < 7) {
+            syncInputValuesToPlayers();
             players.push({ name: "", score: 0 });
             renderPlayersUI();
         }
@@ -923,8 +1392,58 @@ PINGPONG/ASZTALITENISZ</textarea>
                     const targetIdx = Math.min(index, remainingInputs.length - 1);
                     remainingInputs[targetIdx].focus();
                 }
+                return;
             }
         }
+
+        const resetLink = document.getElementById('resetLink');
+        if (!isPlayersSaved && resetLink) {
+            const hasAnyPlayerName = players.some(p => p.name && p.name.trim() !== "");
+            resetLink.style.display = hasAnyPlayerName ? "inline" : "none";
+        }
+    }
+
+    /* DRAG & DROP FUNKCIÓK EDITÁLÁS MÓDBAN */
+    function syncInputValuesToPlayers() {
+        const inputs = document.querySelectorAll('.player-name-input');
+        inputs.forEach((input, idx) => {
+            if (players[idx]) {
+                players[idx].name = input.value;
+            }
+        });
+    }
+
+    function handleDragStart(e, idx) {
+        syncInputValuesToPlayers();
+        draggedPlayerIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.currentTarget.classList.add('dragging');
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDrop(e, targetIdx) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+        if (draggedPlayerIdx !== null && draggedPlayerIdx !== targetIdx) {
+            syncInputValuesToPlayers();
+            const movedItem = players.splice(draggedPlayerIdx, 1)[0];
+            players.splice(targetIdx, 0, movedItem);
+            renderPlayersUI();
+        }
+        return false;
+    }
+
+    function handleDragEnd(e) {
+        e.currentTarget.classList.remove('dragging');
+        draggedPlayerIdx = null;
     }
 
     function togglePlayerScore(index) {
@@ -953,8 +1472,7 @@ PINGPONG/ASZTALITENISZ</textarea>
         renderPlayersUI();
         updateHistoryUI();
         
-        // Ha már elértük az utolsó kört, frissítsük a győztes kijelzőt
-        const maxDraws = players.length * 2;
+        const maxDraws = getMaxDraws();
         if (drawnCardRecords.length >= maxDraws) {
             renderGameOver();
         }
@@ -965,12 +1483,14 @@ PINGPONG/ASZTALITENISZ</textarea>
         const saveEditLink = document.getElementById('saveEditLink');
         const resetLink = document.getElementById('resetLink');
 
+        const hasAnyPlayerName = players.some(p => p.name && p.name.trim() !== "");
+
         if (isPlayersSaved) {
             saveEditLink.innerText = "EDITÁLÁS";
             resetLink.style.display = "none";
         } else {
             saveEditLink.innerText = "MENTÉS";
-            resetLink.style.display = "inline";
+            resetLink.style.display = hasAnyPlayerName ? "inline" : "none";
         }
 
         let html = "";
@@ -979,7 +1499,12 @@ PINGPONG/ASZTALITENISZ</textarea>
             const num = idx + 1;
             if (!isPlayersSaved) {
                 html += `
-                    <div class="item-row">
+                    <div class="item-row" draggable="true" 
+                         ondragstart="handleDragStart(event, ${idx})" 
+                         ondragover="handleDragOver(event)" 
+                         ondrop="handleDrop(event, ${idx})" 
+                         ondragend="handleDragEnd(event)">
+                        <span class="drag-handle" title="Fogd meg és húzd a sorrend megváltoztatásához">⋮⋮</span>
                         <span class="row-num">${num}.</span>
                         <input type="text" class="player-name-input" value="${p.name}" oninput="updatePlayerNameLocally(${idx}, this.value)" placeholder="Játékos neve">
                         <span class="player-score-badge">${p.score} pont</span>
@@ -1024,7 +1549,7 @@ PINGPONG/ASZTALITENISZ</textarea>
             return;
         }
 
-        const maxDraws = players.length * 2; // Dinamikus húzási limit: Játékosok száma * 2
+        const maxDraws = getMaxDraws();
 
         if (drawnCardRecords.length >= maxDraws) {
             renderGameOver();
@@ -1072,10 +1597,8 @@ PINGPONG/ASZTALITENISZ</textarea>
 
         resetDice();
         
-        // Ha ezzel a húzással elértük a maximális kört
         if (drawnCardRecords.length === maxDraws) {
             renderActiveCard(record);
-            // Kártya renderelése után, amennyiben elértük a limitet, megjelenítjük az összefoglalót is
             const resultBox = document.getElementById('resultDisplay');
             resultBox.innerHTML += getGameOverHtml();
         } else {
@@ -1132,11 +1655,16 @@ PINGPONG/ASZTALITENISZ</textarea>
 
     function renderActiveCard(record) {
         const display = document.getElementById('resultDisplay');
-        const maxDraws = players.length * 2;
+        const maxDraws = getMaxDraws();
+        const drawNum = drawnCardRecords.length;
         
+        // Kitaláló kiszámítása a játékosok sorrendje alapján
+        const guesserIdx = (drawNum - 1) % players.length;
+        const guesserName = players[guesserIdx] ? players[guesserIdx].name : "???";
+
         let html = `
             <div class="section-header-row">
-                <span class="section-title-text">KÁRTYA (${drawnCardRecords.length} / ${maxDraws}. húzás)</span>
+                <span class="section-title-text">KÁRTYA (${drawNum} / ${maxDraws}. húzás) – 🤔 Kitaláló: ${guesserName}</span>
             </div>
             <div class="card-words-container">`;
         
@@ -1173,7 +1701,7 @@ PINGPONG/ASZTALITENISZ</textarea>
         
         renderActiveCard(currentRecord);
         
-        const maxDraws = players.length * 2;
+        const maxDraws = getMaxDraws();
         if (drawnCardRecords.length >= maxDraws) {
             const display = document.getElementById('resultDisplay');
             display.innerHTML += getGameOverHtml();
@@ -1195,7 +1723,9 @@ PINGPONG/ASZTALITENISZ</textarea>
 
         const html = drawnCardRecords.slice().reverse().map((record, revIdx) => {
             const cardNum = drawnCardRecords.length - revIdx;
-            
+            const guesserIdx = (cardNum - 1) % players.length;
+            const guesserName = players[guesserIdx] ? players[guesserIdx].name : "???";
+
             let wordsHtml = record.words.map((w, i) => {
                 const isSelected = (w === record.selectedWord);
                 if (isSelected) {
@@ -1210,7 +1740,7 @@ PINGPONG/ASZTALITENISZ</textarea>
             }
 
             return `<li class="history-card-item">
-                <div class="history-card-title">${cardNum}. Kisorsolt kártya</div>
+                <div class="history-card-title">${cardNum}. Kisorsolt kártya <span style="font-weight: normal; font-size: 0.85em; color: #555;">(Kitaláló: <strong>${guesserName}</strong>)</span></div>
                 <div>${wordsHtml}</div>
                 ${scoredHtml}
             </li>`;
