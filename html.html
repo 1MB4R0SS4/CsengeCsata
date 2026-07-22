@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firka FUTAM - Kártyasorsoló és Játékszabály</title>
+    <style>
+        /* 
+           UNIFORM BETŰMÉRETEK A PROJEKTBEN (MAXIMUM 3 SMÁRT):
+           1. --fs-title:  1.5rem (Főcímsorok)
+           2. --fs-header: 1.05rem (Szekció/Kártya/Játékosok/Kocka címsorok & Gombok)
+           3. --fs-base:   0.9rem (Sorkereső elemek, inputok, gombok feliratai, szövegek)
+        */
+        :root {
+            --fs-title: 1.5rem;
+            --fs-header: 1.05rem;
+            --fs-base: 0.9rem;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            font-size: var(--fs-base);
+        }
+        .container {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 950px;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fejléc elrendezése */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        h2.title {
+            margin: 0;
+            color: #1a1a1a;
+            font-size: var(--fs-title);
+        }
+        .top-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* FIX MÉRETŰ FELSŐ GOMBOK */
+        .nav-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #007bff;
+            color: #007bff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: var(--fs-base);
+            font-weight: bold;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            width: 175px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .nav-btn:hover {
+            background-color: #007bff;
+            color: white;
+        }
+        .nav-btn.active {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: white;
+            box-shadow: 0 2px 6px rgba(220,53,69,0.3);
+        }
+
+        /* Nézet konténerek */
+        .view-panel {
+            display: none;
+            width: 100%;
+            flex-grow: 1;
+        }
+        .view-panel.active-view {
+            display: block;
+        }
+
+        /* FŐ JÁTÉK NÉZET: Két szimmetrikus oszlop */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .top-nav {
+                justify-content: center;
+            }
+        }
+
+        /* BAL OLDAL */
+        .left-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sorsol-btn-block {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 180px;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+        }
+        .sorsol-btn-block:hover {
+            background-color: #218838;
+        }
+        .sorsol-btn-block:active {
+            transform: scale(0.98);
+        }
+
+        /* JOBB OLDAL */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .dice-box {
+            background-color: #fff8e1;
+            border: 2px dashed #ff9800;
+            border-radius: 10px;
+            padding: 20px 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 180px;
+            box-sizing: border-box;
+        }
+
+        .module-icon {
+            font-size: 3.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+        .dice-icon {
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .dice-icon:hover:not(.disabled) {
+            transform: scale(1.15);
+        }
+        .dice-icon.disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+            transform: none !important;
+        }
+
+        .module-label {
+            font-size: var(--fs-header);
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 24px;
+        }
+        .dice-status {
+            color: #495057;
+        }
+
+        /* JÁTÉKOSOK ÉS KÁRTYA KONTÉNER */
+        .players-container {
+            background-color: #fffde7;
+            border: 2px solid #ffcc00;
+            border-radius: 10px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* EGYSÉGES FEJLÉC SOROK ÉS VÁLASZVONALAK */
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #ffe082;
+            padding-bottom: 6px;
+        }
+
+        .section-title-text {
+            font-weight: bold;
+            color: #b78103;
+            font-size: var(--fs-header);
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .save-edit-link {
+            font-size: var(--fs-base);
+            color: #007bff;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .save-edit-link:hover {
+            color: #0056b3;
+        }
+
+        .reset-link {
+            font-size: var(--fs-base);
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .reset-link:hover {
+            color: #bd2130;
+        }
+
+        .players-list-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #ffffff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            min-height: 38px;
+            box-sizing: border-box;
+        }
+
+        .item-row.dashed-empty {
+            border: 2px dashed #ff9800;
+            background-color: #fff9c4;
+            cursor: pointer;
+            color: #8d6e63;
+            font-size: var(--fs-base);
+            justify-content: center;
+            font-weight: bold;
+        }
+        .item-row.dashed-empty:hover {
+            background-color: #fff59d;
+        }
+
+        .row-num {
+            font-weight: bold;
+            color: #555;
+            font-size: var(--fs-base);
+            min-width: 20px;
+        }
+
+        .player-name-input {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-size: var(--fs-base);
+            outline: none;
+            box-sizing: border-box;
+            height: 28px;
+        }
+        .player-name-input:focus {
+            border-color: #007bff;
+        }
+
+        .player-name-text {
+            flex-grow: 1;
+            font-weight: bold;
+            font-size: var(--fs-base);
+            color: #333;
+        }
+
+        .player-score-badge {
+            background-color: #e2e8f0;
+            color: #2d3748;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: var(--fs-base);
+            font-weight: bold;
+        }
+
+        .item-row.selectable {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .item-row.selectable:hover {
+            background-color: #f1f8ff;
+            border-color: #007bff;
+        }
+        .item-row.scored {
+            background-color: #d4edda !important;
+            border-color: #28a745 !important;
+        }
+
+        .result-box {
+            margin-top: 15px;
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            word-break: break-word;
+        }
+
+        .card-words-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .card-word-item {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: var(--fs-base);
+            color: #333;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            user-select: none;
+            min-height: 38px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
+        .card-word-item:hover {
+            border-color: #007bff;
+            background-color: #f0f7ff;
+        }
+        .card-word-item.selected-word {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            box-shadow: 0 2px 6px rgba(40,167,69,0.2);
+        }
+
+        .toggle-btn {
+            background: none;
+            border: 1px solid #007bff;
+            color: #007bff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: var(--fs-base);
+            font-weight: bold;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .toggle-btn:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .bottom-section {
+            margin-top: 25px;
+            border-top: 2px solid #e9ecef;
+            padding-top: 15px;
+        }
+        .collapsible-content {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        .history-list {
+            text-align: left;
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 0;
+            margin: 10px 0 0 0;
+            list-style: none;
+        }
+        .history-card-item {
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: var(--fs-base);
+        }
+        .history-card-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 4px;
+            font-size: var(--fs-header);
+        }
+        .history-word {
+            display: inline-block;
+            margin: 2px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #f1f3f5;
+            color: #495057;
+            font-size: var(--fs-base);
+        }
+        .history-word.selected {
+            background-color: #ffecb3;
+            border: 1px solid #ffe082;
+            color: #856404;
+            font-weight: bold;
+        }
+        .clear-history-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: var(--fs-base);
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .module-content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .module-header-title {
+            font-size: var(--fs-title);
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 8px;
+        }
+
+        .rules-container {
+            font-size: var(--fs-base);
+            line-height: 1.5;
+            color: #212529;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .rules-container h3 {
+            color: #d9534f;
+            border-bottom: 2px solid #d9534f;
+            padding-bottom: 3px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-size: var(--fs-header);
+            text-transform: uppercase;
+        }
+        .rules-container h4 {
+            color: #0275d8;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            font-size: var(--fs-header);
+        }
+        .rules-container ul, .rules-container ol {
+            padding-left: 20px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+        .rules-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: var(--fs-base);
+        }
+
+        .file-btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: var(--fs-base);
+            margin-bottom: 10px;
+        }
+        .file-btn:hover {
+            background-color: #0056b3;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        textarea {
+            width: 100%;
+            height: 380px;
+            padding: 12px;
+            border: 2px dashed #cccccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: var(--fs-base);
+            font-family: monospace;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- FEJLÉC ÉS FIX MÉRETŰ JOBB FELSŐ GOMBOK -->
+    <div class="header">
+        <h2 class="title">🎯 Firka FUTAM</h2>
+        <div class="top-nav">
+            <button id="btnRules" class="nav-btn" onclick="switchView('rules')">📖 Játékszabályok</button>
+            <button id="btnDb" class="nav-btn" onclick="switchView('db')">📝 Kártyaadatbázis</button>
+        </div>
+    </div>
+
+    <!-- 1. ALAPÉRTELMEZETT JÁTÉK NÉZET -->
+    <div id="gameView" class="view-panel active-view">
+        <div class="main-grid">
+            <!-- BAL OLDAL -->
+            <div class="left-col">
+                <button class="sorsol-btn-block" onclick="sorsolas()">
+                    <div class="module-icon">🎴</div>
+                    <div class="module-label">Kártya sorsolása!</div>
+                </button>
+                
+                <div class="result-box" id="resultDisplay">
+                    <div class="section-header-row">
+                        <span class="section-title-text">KÁRTYA</span>
+                    </div>
+                    <span style="color: #666; font-size: var(--fs-base);">Nyomj a gombra egy kártya húzásához!</span>
+                </div>
+            </div>
+
+            <!-- JOBB OLDAL -->
+            <div class="right-col">
+                <div class="dice-box">
+                    <div class="module-icon dice-icon" id="diceIcon" onclick="rollDice()" title="Kattints a dobáshoz!">🎲</div>
+                    <div class="module-label dice-status" id="diceResultDisplay">Kattints a kockára a dobáshoz!</div>
+                </div>
+
+                <!-- JÁTÉKOSOK BLOKK -->
+                <div class="players-container">
+                    <div class="section-header-row">
+                        <span class="section-title-text">JÁTÉKOSOK</span>
+                        <div class="header-actions">
+                            <span id="resetLink" class="reset-link" style="display: none;" onclick="resetAllPlayers()">ALAPHELYZET</span>
+                            <span id="saveEditLink" class="save-edit-link" onclick="toggleSaveEditPlayers()">MENTÉS</span>
+                        </div>
+                    </div>
+                    <div id="playersListBox" class="players-list-box">
+                        <!-- Ide generálódnak a játékosok -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALSÓ SZEKCIÓ -->
+        <div class="bottom-section">
+            <button class="toggle-btn" onclick="toggleHistorySection(this)">
+                📜 Előzmények (megnyitás)
+            </button>
+
+            <div id="historySection" class="collapsible-content">
+                <div id="historyCount" style="font-size: var(--fs-base); color: #495057; font-weight: bold;">📜 Kisorsolt kártyák (0):</div>
+                <ul id="historyList" class="history-list">
+                    <li style="color: #888; font-size: var(--fs-base);">Még nincs kisorsolt kártya.</li>
+                </ul>
+                <button class="clear-history-btn" onclick="clearHistory()">🔄 Előzmények törlése</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. JÁTÉKSZABÁLYOK TELJES NÉZET -->
+    <div id="rulesView" class="view-panel">
+        <div class="module-content">
+            <div class="module-header-title">📖 Játékszabályok</div>
+            <div class="rules-container">
+                <h2 style="text-align: center; margin-bottom: 0; font-size: var(--fs-title);">Firka FUTAM</h2>
+                <div style="text-align: center; font-size: var(--fs-base); color: #666; margin-bottom: 15px;">
+                    BUVARP ÉS SVENSSON<br>
+                    Egy pörgős rajzolós játék 3–7 játékos részére, 10 éves kor felett. Játékidő: 15–20 perc.
+                </div>
+
+                <h3>ÁTTEKINTÉS</h3>
+                <p>Minden fordulóban lesz egy <strong>kitaláló</strong>, a többi játékos pedig a <strong>rajzolók</strong> szerepét töltik be. A rajzolók megpróbálják a megadott szót minél gyorsabban és pontosabban lerajzolni. A kitalálónak az lesz a feladata, hogy kitalálja ezt a szót, úgy, hogy egyesével haladva megnézi a rajzokat, kezdve annak a játékosnak a rajzával, aki elsőként fejezte be a rajzolást. Akinek a rajza alapján a kitalálónak sikerül rájönnie a szóra, az kap egy pontot, ahogyan a kitaláló is.</p>
+                <p>A játék végén a legtöbb ponttal rendelkező játékos lesz a győztes.</p>
+
+                <h3>A JÁTÉK TARTOZÉKAI</h3>
+                <ul>
+                    <li>7 Rajztábla</li>
+                    <li>7 Filctoll</li>
+                    <li>70 Kártya (490 feladvány)</li>
+                    <li>24 Pontjelző</li>
+                    <li>1 Henger</li>
+                    <li>1 Dobókocka (csak egy oldalán található szimbólum)</li>
+                </ul>
+
+                <h3>A JÁTÉK ELŐKÉSZÜLETEI</h3>
+                <ol>
+                    <li><strong>Keverjétek meg a kártyákat!</strong> Alkossatok egy közös paklit úgy, hogy a pakliba játékosonként két lap kerüljön, majd tegyétek ezt az asztal egyik felére!<br>
+                    <em>PÉLDA: Egy 5 fős játékban 10 lap kerül a közös pakliba.</em>
+                    <div class="rules-box"><strong>3–4 fős játék esetén:</strong> Alkossatok egy 12 lapból álló közös paklit.</div></li>
+                    <li>Osszatok ki minden játékosnak egy rajztáblát és egy filctollat. A megmaradt rajztáblákat és filctollakat tegyétek vissza a dobozba.</li>
+                    <li>Tegyétek a pontjelzőket egy kupacba az asztal másik felére.</li>
+                    <li>Helyezzétek a hengert és a kockát az asztal közepére, úgy, hogy mindenki számára könnyen elérhető legyen.
+                    <div class="rules-box"><strong>3 fős játék esetén:</strong> Tegyétek vissza a hengert a dobozba (csak a kockát fogjátok használni).</div></li>
+                </ol>
+
+                <h3>A JÁTÉK MENETE</h3>
+                <p>Az első fordulóban a legidősebb játékos lesz a kitaláló. Minden fordulóban a következő lépéseket hajtsátok végre, a megadott sorrendben:</p>
+
+                <h4>1. SZÓ FELFEDÉSE</h4>
+                <p>A kitaláló becsukja a szemét, és egészen a <em>(3) TALÁLGATÁS ÉS PONTOZÁS</em> lépésig csukva tartja. A kitaláló balján ülő játékos felhúzza, majd felfordítva az asztal közepére teszi a pakli legfelső kártyáját. Minden kártyán 7 sorszámozott szó található. A kitaláló mond egy számot (1 és 7 között). Az adott fordulóban a rajzolóknak azt a szót kell lerajzolniuk, ami a bemondott szám mellett látható. Ügyeljetek arra, hogy a kitalálón kívül mindenki lássa a szót!</p>
+
+                <h4>2. RAJZOLÁS</h4>
+                <p>A kitaláló jelzésére minden rajzoló elkezdi rajzolni az adott szót a saját rajztáblájára.</p>
+                <ol>
+                    <li>Az a <strong>rajzoló, aki elsőként fejezi be</strong> a rajzát, megragadja a <strong>hengert</strong>.</li>
+                    <li>Az a <strong>rajzoló, aki másodikként fejezi be</strong> a rajzát, megragadja a <strong>kockát</strong>, majd dob, amíg meg nem dobja a szimbólumot, ekkor felkiált: <strong>„STOP!”</strong>.</li>
+                </ol>
+
+                <h4>3. TALÁLGATÁS ÉS PONTOZÁS</h4>
+                <p>A kitaláló kinyithatja a szemét, majd megkezdi a tippeket.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. KÁRTYA ADATBÁZIS TELJES NÉZET -->
+    <div id="dbView" class="view-panel">
+        <div class="module-content">
+            <div class="module-header-title">📝 Kártyaadatbázis (.txt)</div>
+            <label for="fileInput" class="file-btn">📁 Új .txt fájl betöltése</label>
+            <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
+
+            <p style="margin-top: 5px; font-size: var(--fs-base); color: #666;">
+                A kártyákat <code>---</code> sorok választják el egymástól. A szövegdoboz közvetlenül szerkeszthető!
+            </p>
+
+            <textarea id="wordList">*HÁRFA
+SZEKÉR/HINTÓ
+SZOMSZÉD
+INTERNET
+HAGYMA
+TŰZŐGÉP
+SZÜLINAP
+---
+GIMNASZTIKA/TORNA
+MAGASUGRÁS
+SZÖRFDESZKA
+GOLF
+*MŰLESIKLÁS/SZLALOM
+MINIGOLF
+EDZŐTEREM
+---
+GALAMB
+SAS
+*BÁNYA
+FÉSZEK
+SIRÁLY
+KAKAS
+BARLANG
+---
+CSOKOLÁDÉ
+*NEW YORK
+RÁGÓGUMI
+MÁGNES
+TEHERAUTÓ
+ÁLLATKERT
+USA/EGYESÜLT ÁLLAMOK
+---
+KIKÖTŐ
+OÁZIS
+*GŐZHAJÓ
+SIVATAG
+RAFTING/VADVÍZI EVEZÉS
+HOMOK
+HAJÓTÖRÉS
+---
+*PLUTO
+CSIPKERÓZSIKA
+MOSOGATÓSZIVACS
+DONALD
+CSAP/VÍZCSAP
+MICKEY
+MOSOGATÓGÉP
+---
+GRILL
+*OLIMPIAI LÁNG
+TŰZOLTÓ
+FAHASÁB
+TŰZ
+ÖNGYÚJTÓ
+GYUFA
+---
+*TEJÚT/GALAXIS
+TELESZKÓP
+BOLYGÓ/FÖLD
+SEBESSÉGMÉRŐ
+MŰHOLD
+ŰRHAJÓS/ASZTRONAUTA
+PEDÁL
+---
+CSIKÓHAL
+ARANYHAL
+ŰRLÉNY/MARSLAKÓ
+FÓKA
+MEDÚZA
+*UFO/REPÜLŐ CSÉSZEALJ
+DELFIN
+---
+SZABÓ
+ÚSZÓMEDENCE
+KRUMPLI/BURGONYA
+PORSZÍVÓ
+RETIKÜL
+*VÍZSZERELŐ
+PINGPONG/ASZTALITENISZ</textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+    const textarea = document.getElementById('wordList');
+    
+    let drawnCardRecords = [];
+    let isDiceLocked = false;
+    let isRolling = false;
+    let activeView = 'game';
+
+    // JÁTÉKOSOK ÉS MENTÉSEK KEZELÉSE
+    let players = [
+        { name: "", score: 0 },
+        { name: "", score: 0 },
+        { name: "", score: 0 }
+    ];
+    let isPlayersSaved = false;
+
+    // Kártya-adatbázis betöltése
+    const savedWords = localStorage.getItem('myWordDatabase');
+    if (savedWords) {
+        textarea.value = savedWords;
+    }
+
+    // Előző játékról elmentett JÁTÉKOSNEVEK betöltése (A PONTSZÁMOK MINDIG 0-RÓL INDULNAK UJRAINDÍTÁSKOR)
+    const savedPlayerNames = localStorage.getItem('mySavedPlayerNames');
+    if (savedPlayerNames) {
+        try {
+            const parsedNames = JSON.parse(savedPlayerNames);
+            if (Array.isArray(parsedNames) && parsedNames.length >= 3) {
+                players = parsedNames.map(name => ({ name: name, score: 0 }));
+                isPlayersSaved = true;
+            }
+        } catch(e) {}
+    }
+
+    renderPlayersUI();
+
+    function switchView(targetView) {
+        const btnRules = document.getElementById('btnRules');
+        const btnDb = document.getElementById('btnDb');
+
+        if (activeView === targetView) {
+            activeView = 'game';
+        } else {
+            activeView = targetView;
+        }
+
+        document.getElementById('gameView').classList.remove('active-view');
+        document.getElementById('rulesView').classList.remove('active-view');
+        document.getElementById('dbView').classList.remove('active-view');
+
+        btnRules.classList.remove('active');
+        btnDb.classList.remove('active');
+        btnRules.innerText = '📖 Játékszabályok';
+        btnDb.innerText = '📝 Kártyaadatbázis';
+
+        if (activeView === 'game') {
+            document.getElementById('gameView').classList.add('active-view');
+        } else if (activeView === 'rules') {
+            document.getElementById('rulesView').classList.add('active-view');
+            btnRules.classList.add('active');
+            btnRules.innerText = '🔙 Vissza';
+        } else if (activeView === 'db') {
+            document.getElementById('dbView').classList.add('active-view');
+            btnDb.classList.add('active');
+            btnDb.innerText = '🔙 Vissza';
+        }
+    }
+
+    function toggleHistorySection(btnElement) {
+        const historySec = document.getElementById('historySection');
+        if (historySec.style.display === "block") {
+            historySec.style.display = "none";
+            btnElement.innerText = "📜 Előzmények (megnyitás)";
+        } else {
+            historySec.style.display = "block";
+            btnElement.innerText = "📜 Előzmények (bezárás)";
+        }
+    }
+
+    function loadFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            textarea.value = e.target.result;
+            localStorage.setItem('myWordDatabase', e.target.result);
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function parseCards(text) {
+        const rawCards = text.split(/\r?\n\s*---\s*\r?\n?/);
+        return rawCards.map(cardStr => {
+            return cardStr.split(/\r?\n/)
+                          .map(w => w.trim())
+                          .filter(w => w.length > 0);
+        }).filter(cardArray => cardArray.length > 0);
+    }
+
+    function toggleSaveEditPlayers() {
+        if (!isPlayersSaved) {
+            // MENTÉS
+            const inputs = document.querySelectorAll('.player-name-input');
+            let newPlayers = [];
+
+            inputs.forEach(input => {
+                const val = input.value.trim();
+                if (val !== "") {
+                    newPlayers.push({ name: val, score: 0 });
+                }
+            });
+
+            if (newPlayers.length < 3) {
+                alert("Legalább 3 kitöltött játékosnév szükséges!");
+                return;
+            }
+
+            players = newPlayers;
+            isPlayersSaved = true;
+
+            // Csak a neveket mentjük el localStorage-ba a következő játékokhoz
+            const namesToSave = players.map(p => p.name);
+            localStorage.setItem('mySavedPlayerNames', JSON.stringify(namesToSave));
+
+        } else {
+            // EDITÁLÁS
+            isPlayersSaved = false;
+        }
+
+        renderPlayersUI();
+    }
+
+    /* ALAPHELYZET GOMB: töröl minden nevet, a tárhelyet is és visszaáll 3 üres mezőre */
+    function resetAllPlayers() {
+        players = [
+            { name: "", score: 0 },
+            { name: "", score: 0 },
+            { name: "", score: 0 }
+        ];
+        localStorage.removeItem('mySavedPlayerNames');
+        renderPlayersUI();
+    }
+
+    function addEmptyPlayerRow() {
+        if (players.length < 7) {
+            players.push({ name: "", score: 0 });
+            renderPlayersUI();
+        }
+    }
+
+    /* NÉV FRISSÍTÉS ÉS TÖRLÉS ELEMZÉSE */
+    function updatePlayerNameLocally(index, val) {
+        if (players[index]) {
+            players[index].name = val;
+        }
+
+        // Ha törölve lett a szöveg a mezőből
+        if (val.trim() === "") {
+            if (players.length > 3) {
+                players.splice(index, 1);
+                renderPlayersUI();
+                const remainingInputs = document.querySelectorAll('.player-name-input');
+                if (remainingInputs.length > 0) {
+                    const targetIdx = Math.min(index, remainingInputs.length - 1);
+                    remainingInputs[targetIdx].focus();
+                }
+            }
+        }
+    }
+
+    function togglePlayerScore(index) {
+        if (!isPlayersSaved || drawnCardRecords.length === 0) return;
+        
+        const currentCardRecord = drawnCardRecords[drawnCardRecords.length - 1];
+        if (!currentCardRecord.scoredPlayers) {
+            currentCardRecord.scoredPlayers = [];
+        }
+
+        const playerName = players[index].name;
+        const alreadyHasPoint = currentCardRecord.scoredPlayers.includes(playerName);
+
+        if (alreadyHasPoint) {
+            currentCardRecord.scoredPlayers = currentCardRecord.scoredPlayers.filter(p => p !== playerName);
+            players[index].score -= 1;
+        } else {
+            if (currentCardRecord.scoredPlayers.length >= 5) {
+                alert("Egy körben maximum 5 játékos kaphat pontot!");
+                return;
+            }
+            currentCardRecord.scoredPlayers.push(playerName);
+            players[index].score += 1;
+        }
+
+        renderPlayersUI();
+        updateHistoryUI();
+        checkGameOverStatus();
+    }
+
+    function renderPlayersUI() {
+        const listContainer = document.getElementById('playersListBox');
+        const saveEditLink = document.getElementById('saveEditLink');
+        const resetLink = document.getElementById('resetLink');
+
+        if (isPlayersSaved) {
+            saveEditLink.innerText = "EDITÁLÁS";
+            resetLink.style.display = "none";
+        } else {
+            saveEditLink.innerText = "MENTÉS";
+            resetLink.style.display = "inline";
+        }
+
+        let html = "";
+
+        players.forEach((p, idx) => {
+            const num = idx + 1;
+            if (!isPlayersSaved) {
+                html += `
+                    <div class="item-row">
+                        <span class="row-num">${num}.</span>
+                        <input type="text" class="player-name-input" value="${p.name}" oninput="updatePlayerNameLocally(${idx}, this.value)" placeholder="Játékos neve">
+                        <span class="player-score-badge">${p.score} pont</span>
+                    </div>
+                `;
+            } else {
+                let isScoredInCurrentCard = false;
+                if (drawnCardRecords.length > 0) {
+                    const currentCardRecord = drawnCardRecords[drawnCardRecords.length - 1];
+                    if (currentCardRecord.scoredPlayers && currentCardRecord.scoredPlayers.includes(p.name)) {
+                        isScoredInCurrentCard = true;
+                    }
+                }
+
+                const selectableClass = (drawnCardRecords.length > 0) ? "selectable" : "";
+                const scoredClass = isScoredInCurrentCard ? "scored" : "";
+
+                html += `
+                    <div class="item-row ${selectableClass} ${scoredClass}" ${drawnCardRecords.length > 0 ? `onclick="togglePlayerScore(${idx})"` : ''} title="${drawnCardRecords.length > 0 ? 'Kattints a pontért/pont visszavonásához' : ''}">
+                        <span class="row-num">${num}.</span>
+                        <span class="player-name-text">${p.name}</span>
+                        <span class="player-score-badge">${p.score} pont</span>
+                    </div>
+                `;
+            }
+        });
+
+        if (!isPlayersSaved && players.length < 7) {
+            html += `
+                <div class="item-row dashed-empty" onclick="addEmptyPlayerRow()">
+                    + Új játékos hozzáadása (Max 7)
+                </div>
+            `;
+        }
+
+        listContainer.innerHTML = html;
+    }
+
+    function sorsolas() {
+        const text = textarea.value;
+        localStorage.setItem('myWordDatabase', text);
+
+        const allCards = parseCards(text);
+
+        if (allCards.length === 0) {
+            document.getElementById('resultDisplay').innerHTML = `
+                <div class="section-header-row">
+                    <span class="section-title-text">KÁRTYA</span>
+                </div>
+                <span style="color:#dc3545; font-weight:bold; font-size: var(--fs-base);">⚠️ Tölts be kártyákat az adatbázisba!</span>`;
+            return;
+        }
+
+        const drawnIndices = drawnCardRecords.map(r => r.cardIndex);
+        const availableIndices = [];
+        for (let i = 0; i < allCards.length; i++) {
+            if (!drawnIndices.includes(i)) {
+                availableIndices.push(i);
+            }
+        }
+
+        if (availableIndices.length === 0) {
+            document.getElementById('resultDisplay').innerHTML = `
+                <div class="section-header-row">
+                    <span class="section-title-text">KÁRTYA</span>
+                </div>
+                <div style="color: #dc3545; font-size: var(--fs-header); font-weight: bold;">🎉 A játéknak vége!</div>
+                <div id="gameOverWinnerBox" style="color: #28a745; font-size: var(--fs-base); font-weight: bold; margin-top: 8px;"></div>
+                <div style="color: #666; font-size: var(--fs-base); margin-top: 5px;">Az összes kártyát kisorsoltad.</div>`;
+            checkGameOverStatus();
+            return;
+        }
+
+        const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+        const selectedCardWords = allCards[randomIndex];
+
+        const record = {
+            cardIndex: randomIndex,
+            words: selectedCardWords,
+            selectedWord: null,
+            scoredPlayers: []
+        };
+
+        drawnCardRecords.push(record);
+
+        resetDice();
+        renderActiveCard(record);
+        updateHistoryUI();
+        renderPlayersUI();
+    }
+
+    function renderActiveCard(record) {
+        const display = document.getElementById('resultDisplay');
+        
+        let html = `
+            <div class="section-header-row">
+                <span class="section-title-text">KÁRTYA (${drawnCardRecords.length}. húzás)</span>
+            </div>
+            <div class="card-words-container">`;
+        
+        record.words.forEach((word, idx) => {
+            const isSelected = record.selectedWord === word;
+            
+            if (record.selectedWord !== null && !isSelected) {
+                return; 
+            }
+
+            const activeClass = isSelected ? 'selected-word' : '';
+            const checkIcon = isSelected ? ' ✔️' : '';
+            
+            html += `<div class="card-word-item ${activeClass}" onclick="toggleWordSelection(${idx})">`;
+            html += `<span class="row-num">${idx + 1}.</span> ${word}${checkIcon}`;
+            html += `</div>`;
+        });
+        
+        html += `</div>`;
+        display.innerHTML = html;
+    }
+
+    function toggleWordSelection(wordIdx) {
+        if (drawnCardRecords.length === 0) return;
+        
+        const currentRecord = drawnCardRecords[drawnCardRecords.length - 1];
+        const clickedWord = currentRecord.words[wordIdx];
+
+        if (currentRecord.selectedWord === clickedWord) {
+            currentRecord.selectedWord = null;
+        } else {
+            currentRecord.selectedWord = clickedWord;
+        }
+        
+        renderActiveCard(currentRecord);
+        updateHistoryUI();
+    }
+
+    function updateHistoryUI() {
+        const historyList = document.getElementById('historyList');
+        const historyCount = document.getElementById('historyCount');
+
+        historyCount.innerText = `📜 Kisorsolt kártyák (${drawnCardRecords.length}):`;
+
+        if (drawnCardRecords.length === 0) {
+            historyList.innerHTML = '<li style="color: #888; font-size: var(--fs-base);">Még nincs kisorsolt kártya.</li>';
+            return;
+        }
+
+        const html = drawnCardRecords.slice().reverse().map((record, revIdx) => {
+            const cardNum = drawnCardRecords.length - revIdx;
+            
+            let wordsHtml = record.words.map((w, i) => {
+                const isSelected = (w === record.selectedWord);
+                if (isSelected) {
+                    return `<span class="history-word selected">👉 <strong>${i+1}. ${w}</strong></span>`;
+                }
+                return `<span class="history-word">${i+1}. ${w}</span>`;
+            }).join(' ');
+
+            let scoredHtml = "";
+            if (record.scoredPlayers && record.scoredPlayers.length > 0) {
+                scoredHtml = `<div style="margin-top: 6px; font-size: var(--fs-base); color: #28a745; font-weight: bold;">Pontot kapott: ${record.scoredPlayers.join(', ')}</div>`;
+            }
+
+            return `<li class="history-card-item">
+                <div class="history-card-title">${cardNum}. Kisorsolt kártya</div>
+                <div>${wordsHtml}</div>
+                ${scoredHtml}
+            </li>`;
+        }).join('');
+
+        historyList.innerHTML = html;
+    }
+
+    function clearHistory() {
+        drawnCardRecords = [];
+        players.forEach(p => p.score = 0);
+        updateHistoryUI();
+        renderPlayersUI();
+        document.getElementById('resultDisplay').innerHTML = `
+            <div class="section-header-row">
+                <span class="section-title-text">KÁRTYA</span>
+            </div>
+            <span style="color: #666; font-size: var(--fs-base);">Nyomj a gombra egy kártya húzásához!</span>`;
+        resetDice();
+    }
+
+    function rollDice() {
+        if (isDiceLocked || isRolling) return;
+
+        const diceIcon = document.getElementById('diceIcon');
+        const display = document.getElementById('diceResultDisplay');
+
+        isRolling = true;
+        display.innerText = "Gurul a kocka...";
+        display.style.color = "#ff9800";
+
+        setTimeout(() => {
+            const roll = Math.floor(Math.random() * 6) + 1;
+
+            if (roll === 6) {
+                display.innerText = "👍 (STOP! Megvan a szimbólum)";
+                display.style.color = "#28a745";
+                isDiceLocked = true;
+                diceIcon.classList.add('disabled');
+            } else {
+                display.innerText = "👎 (Nincs szimbólum, dobj újra!)";
+                display.style.color = "#dc3545";
+            }
+            isRolling = false;
+        }, 2000);
+    }
+
+    function resetDice() {
+        isDiceLocked = false;
+        isRolling = false;
+        const diceIcon = document.getElementById('diceIcon');
+        const display = document.getElementById('diceResultDisplay');
+        diceIcon.classList.remove('disabled');
+        display.innerText = "Kattints a kockára a dobáshoz!";
+        display.style.color = "#495057";
+    }
+
+    function checkGameOverStatus() {
+        const winnerBox = document.getElementById('gameOverWinnerBox');
+        if (!winnerBox) return;
+
+        if (players.length === 0) return;
+
+        let maxScore = -1;
+        let winners = [];
+
+        players.forEach(p => {
+            if (p.score > maxScore) {
+                maxScore = p.score;
+                winners = [p.name];
+            } else if (p.score === maxScore) {
+                winners.push(p.name);
+            }
+        });
+
+        if (maxScore > 0) {
+            winnerBox.innerText = `👑 Nyertes: ${winners.join(', ')} (${maxScore} pont)`;
+        } else {
+            winnerBox.innerText = `Senki sem szerzett pontot.`;
+        }
+    }
+</script>
+
+</body>
+</html>
