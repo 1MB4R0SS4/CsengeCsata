@@ -782,7 +782,7 @@ PINGPONG/ASZTALITENISZ</textarea>
         textarea.value = savedWords;
     }
 
-    // Előző játékról elmentett JÁTÉKOSNEVEK betöltése (A PONTSZÁMOK MINDIG 0-RÓL INDULNAK UJRAINDÍTÁSKOR)
+    // Előző játékról elmentett JÁTÉKOSNEVEK betöltése
     const savedPlayerNames = localStorage.getItem('mySavedPlayerNames');
     if (savedPlayerNames) {
         try {
@@ -881,7 +881,6 @@ PINGPONG/ASZTALITENISZ</textarea>
             players = newPlayers;
             isPlayersSaved = true;
 
-            // Csak a neveket mentjük el localStorage-ba a következő játékokhoz
             const namesToSave = players.map(p => p.name);
             localStorage.setItem('mySavedPlayerNames', JSON.stringify(namesToSave));
 
@@ -893,7 +892,6 @@ PINGPONG/ASZTALITENISZ</textarea>
         renderPlayersUI();
     }
 
-    /* ALAPHELYZET GOMB: töröl minden nevet, a tárhelyet is és visszaáll 3 üres mezőre */
     function resetAllPlayers() {
         players = [
             { name: "", score: 0 },
@@ -911,13 +909,11 @@ PINGPONG/ASZTALITENISZ</textarea>
         }
     }
 
-    /* NÉV FRISSÍTÉS ÉS TÖRLÉS ELEMZÉSE */
     function updatePlayerNameLocally(index, val) {
         if (players[index]) {
             players[index].name = val;
         }
 
-        // Ha törölve lett a szöveg a mezőből
         if (val.trim() === "") {
             if (players.length > 3) {
                 players.splice(index, 1);
@@ -956,7 +952,12 @@ PINGPONG/ASZTALITENISZ</textarea>
 
         renderPlayersUI();
         updateHistoryUI();
-        checkGameOverStatus();
+        
+        // Ha már elértük az utolsó kört, frissítsük a győztes kijelzőt
+        const maxDraws = players.length * 2;
+        if (drawnCardRecords.length >= maxDraws) {
+            renderGameOver();
+        }
     }
 
     function renderPlayersUI() {
@@ -1018,6 +1019,18 @@ PINGPONG/ASZTALITENISZ</textarea>
     }
 
     function sorsolas() {
+        if (!isPlayersSaved) {
+            alert("Kérlek, először mentsd el a játékosokat a MENTÉS gombra kattintva!");
+            return;
+        }
+
+        const maxDraws = players.length * 2; // Dinamikus húzási limit: Játékosok száma * 2
+
+        if (drawnCardRecords.length >= maxDraws) {
+            renderGameOver();
+            return;
+        }
+
         const text = textarea.value;
         localStorage.setItem('myWordDatabase', text);
 
@@ -1041,14 +1054,7 @@ PINGPONG/ASZTALITENISZ</textarea>
         }
 
         if (availableIndices.length === 0) {
-            document.getElementById('resultDisplay').innerHTML = `
-                <div class="section-header-row">
-                    <span class="section-title-text">KÁRTYA</span>
-                </div>
-                <div style="color: #dc3545; font-size: var(--fs-header); font-weight: bold;">🎉 A játéknak vége!</div>
-                <div id="gameOverWinnerBox" style="color: #28a745; font-size: var(--fs-base); font-weight: bold; margin-top: 8px;"></div>
-                <div style="color: #666; font-size: var(--fs-base); margin-top: 5px;">Az összes kártyát kisorsoltad.</div>`;
-            checkGameOverStatus();
+            renderGameOver();
             return;
         }
 
@@ -1065,17 +1071,72 @@ PINGPONG/ASZTALITENISZ</textarea>
         drawnCardRecords.push(record);
 
         resetDice();
-        renderActiveCard(record);
+        
+        // Ha ezzel a húzással elértük a maximális kört
+        if (drawnCardRecords.length === maxDraws) {
+            renderActiveCard(record);
+            // Kártya renderelése után, amennyiben elértük a limitet, megjelenítjük az összefoglalót is
+            const resultBox = document.getElementById('resultDisplay');
+            resultBox.innerHTML += getGameOverHtml();
+        } else {
+            renderActiveCard(record);
+        }
+
         updateHistoryUI();
         renderPlayersUI();
     }
 
+    function renderGameOver() {
+        const resultBox = document.getElementById('resultDisplay');
+        resultBox.innerHTML = `
+            <div class="section-header-row">
+                <span class="section-title-text">KÁRTYA</span>
+            </div>
+            ${getGameOverHtml()}
+        `;
+    }
+
+    function getGameOverHtml() {
+        let maxScore = -1;
+        let winners = [];
+
+        players.forEach(p => {
+            if (p.score > maxScore) {
+                maxScore = p.score;
+                winners = [p.name];
+            } else if (p.score === maxScore) {
+                winners.push(p.name);
+            }
+        });
+
+        let winnerText = "";
+        if (maxScore > 0) {
+            if (winners.length === 1) {
+                winnerText = `👑 A győztes: <strong style="font-size: 1.1em;">${winners[0]}</strong> (${maxScore} ponttal)! 🎉`;
+            } else {
+                winnerText = `👑 Döntetlen! A győztesek: <strong style="font-size: 1.1em;">${winners.join(', ')}</strong> (${maxScore} ponttal)! 🎉`;
+            }
+        } else {
+            winnerText = `Senki sem szerzett pontot a játék során.`;
+        }
+
+        return `
+            <div style="margin-top: 10px; padding: 10px; background-color: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px;">
+                <div style="color: #dc3545; font-size: var(--fs-header); font-weight: bold;">A játéknak vége!</div>
+                <div style="color: #2e7d32; font-size: var(--fs-base); font-weight: bold; margin-top: 6px;">
+                    ${winnerText}
+                </div>
+            </div>
+        `;
+    }
+
     function renderActiveCard(record) {
         const display = document.getElementById('resultDisplay');
+        const maxDraws = players.length * 2;
         
         let html = `
             <div class="section-header-row">
-                <span class="section-title-text">KÁRTYA (${drawnCardRecords.length}. húzás)</span>
+                <span class="section-title-text">KÁRTYA (${drawnCardRecords.length} / ${maxDraws}. húzás)</span>
             </div>
             <div class="card-words-container">`;
         
@@ -1111,6 +1172,13 @@ PINGPONG/ASZTALITENISZ</textarea>
         }
         
         renderActiveCard(currentRecord);
+        
+        const maxDraws = players.length * 2;
+        if (drawnCardRecords.length >= maxDraws) {
+            const display = document.getElementById('resultDisplay');
+            display.innerHTML += getGameOverHtml();
+        }
+
         updateHistoryUI();
     }
 
@@ -1198,31 +1266,6 @@ PINGPONG/ASZTALITENISZ</textarea>
         diceIcon.classList.remove('disabled');
         display.innerText = "Kattints a kockára a dobáshoz!";
         display.style.color = "#495057";
-    }
-
-    function checkGameOverStatus() {
-        const winnerBox = document.getElementById('gameOverWinnerBox');
-        if (!winnerBox) return;
-
-        if (players.length === 0) return;
-
-        let maxScore = -1;
-        let winners = [];
-
-        players.forEach(p => {
-            if (p.score > maxScore) {
-                maxScore = p.score;
-                winners = [p.name];
-            } else if (p.score === maxScore) {
-                winners.push(p.name);
-            }
-        });
-
-        if (maxScore > 0) {
-            winnerBox.innerText = `👑 Nyertes: ${winners.join(', ')} (${maxScore} pont)`;
-        } else {
-            winnerBox.innerText = `Senki sem szerzett pontot.`;
-        }
     }
 </script>
 
