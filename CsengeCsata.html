@@ -3,359 +3,418 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firka FUTAM - Kártyasorsoló és Játékszabály</title>
+    <title>Firka FUTAM – Kártyasorsoló és Játékszabály</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Shantell+Sans:ital,wght@0,400;0,600;0,700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --fs-title: 1.5rem;
-            --fs-header: 1.05rem;
-            --fs-base: 0.9rem;
+            /* Szigorú doodle színpaletta */
+            --paper: #F4F3EF;
+            --card: #FFFFFF;
+            --ink: #100D0F;
+            --blue: #009ADB;
+            --blue-soft: rgba(0, 154, 219, 0.12);
+            --green: #2D8C55;
+            --green-soft: rgba(45, 140, 85, 0.12);
+            --red: #C95627;
+            --red-soft: rgba(201, 86, 39, 0.12);
+
+            /* Tipográfia */
+            --fs-title: 2.4rem;
+            --fs-header: 1.25rem;
+            --fs-base: 0.95rem;
+
+            --font-hand: 'Caveat', cursive;
+            --font-body: 'Shantell Sans', sans-serif;
+
+            /* Girbegurba doodle keretek */
+            --wobble-a: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            --wobble-b: 15px 225px 15px 255px / 225px 15px 255px 15px;
+            --wobble-c: 225px 15px 255px 15px / 15px 255px 15px 225px;
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: var(--font-body);
+            color: var(--ink);
+            background-color: var(--paper);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cg fill='none' stroke='%23100D0F' stroke-width='2.5' stroke-linecap='round' opacity='0.05'%3E%3Cpath d='M30 40 q10 -18 20 0 q10 18 20 0'/%3E%3Cpath d='M215 30 q14 -12 20 2 q4 12 -10 14 m0 12 v2'/%3E%3Cpath d='M130 120 l14 -22 l6 24 l22 -10'/%3E%3Cpath d='M40 200 l8 16 m-16 -8 l16 -8 m-14 18 l12 -20'/%3E%3Ccircle cx='230' cy='190' r='13'/%3E%3Cpath d='M223 190 a7 7 0 1 1 14 0'/%3E%3Cpath d='M90 255 q20 12 40 0 q20 -12 40 0'/%3E%3Cpath d='M170 60 c14 4 14 18 0 20 c-12 2 -12 14 2 16'/%3E%3C/g%3E%3C/svg%3E");
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            padding: 24px 16px 48px;
             font-size: var(--fs-base);
+            line-height: 1.45;
         }
+
         .container {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 950px;
-            min-height: 550px;
+            max-width: 980px;
             display: flex;
             flex-direction: column;
         }
 
-        /* Fejléc elrendezése */
+        /* ============ FEJLÉC ============ */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #f0f2f5;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            gap: 14px;
             flex-wrap: wrap;
-            gap: 10px;
+            margin-bottom: 22px;
         }
-        h2.title {
-            margin: 0;
-            color: #1a1a1a;
-            font-size: var(--fs-title);
-        }
-        .top-nav {
+        .brand {
             display: flex;
-            gap: 10px;
+            align-items: center;
+            gap: 12px;
         }
-        
-        /* FIX MÉRETŰ FELSŐ GOMBOK */
+        .brand-pencil {
+            flex-shrink: 0;
+            transform: rotate(-8deg);
+        }
+        h1.title {
+            margin: 0;
+            font-family: var(--font-hand);
+            font-weight: 700;
+            font-size: var(--fs-title);
+            line-height: 1;
+            letter-spacing: 0.5px;
+            color: var(--ink);
+            position: relative;
+            padding-bottom: 10px;
+        }
+        h1.title .accent { color: var(--red); }
+        h1.title .underline-squiggle {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 10px;
+        }
+
+        .top-nav { display: flex; gap: 10px; flex-wrap: wrap; }
+
         .nav-btn {
-            background-color: #f8f9fa;
-            border: 2px solid #007bff;
-            color: #007bff;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
+            font-family: var(--font-body);
+            font-weight: 700;
             font-size: var(--fs-base);
-            font-weight: bold;
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-            width: 175px;
+            color: var(--blue);
+            background-color: var(--card);
+            border: 2.5px solid var(--ink);
+            border-radius: var(--wobble-a);
+            box-shadow: 3px 3px 0 var(--ink);
+            padding: 9px 16px;
+            width: 210px;
             text-align: center;
-            box-sizing: border-box;
+            cursor: pointer;
+            transform: rotate(-0.6deg);
+            transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s, color 0.15s;
         }
+        .nav-btn:nth-child(2) { transform: rotate(0.7deg); }
         .nav-btn:hover {
-            background-color: #007bff;
-            color: white;
+            background-color: var(--blue-soft);
+            transform: rotate(0deg) translateY(-2px);
+            box-shadow: 4px 5px 0 var(--ink);
         }
         .nav-btn.active {
-            background-color: #dc3545;
-            border-color: #dc3545;
-            color: white;
-            box-shadow: 0 2px 6px rgba(220,53,69,0.3);
+            background-color: var(--red);
+            color: var(--card);
+        }
+        .nav-btn.active:hover { background-color: var(--red); }
+        
+        .nav-btn:focus-visible,
+        button:focus-visible,
+        .file-btn:focus-visible,
+        [tabindex]:focus-visible {
+            outline: 3px dashed var(--blue);
+            outline-offset: 3px;
         }
 
-        /* Nézet konténerek */
-        .view-panel {
-            display: none;
-            width: 100%;
-            flex-grow: 1;
-        }
-        .view-panel.active-view {
-            display: block;
-        }
+        /* ============ NÉZETEK ============ */
+        .view-panel { display: none; width: 100%; }
+        .view-panel.active-view { display: block; }
 
-        /* FŐ JÁTÉK NÉZET: Két szimmetrikus oszlop */
         .main-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
             align-items: start;
         }
-
         @media (max-width: 768px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            .header {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-            .top-nav {
-                justify-content: center;
-            }
+            .main-grid { grid-template-columns: minmax(0, 1fr); }
+            .header { flex-direction: column; align-items: center; text-align: center; }
+            h1.title { font-size: 2.2rem; }
+            .top-nav { justify-content: center; }
         }
 
-        /* BAL OLDAL */
-        .left-col {
-            display: flex;
-            flex-direction: column;
+        .left-col, .right-col { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            min-width: 0;
         }
 
+        /* ============ SORSOLÓ GOMB & KOCKA (FIX MÉRET) ============ */
         .sorsol-btn-block {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 20px 15px;
-            text-align: center;
+            font-family: var(--font-body);
+            background-color: var(--green);
+            color: var(--card);
+            border: 3px solid var(--ink);
+            border-radius: var(--wobble-b);
+            box-shadow: 4px 4px 0 var(--ink);
+            padding: 15px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 180px;
-            box-sizing: border-box;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            gap: 8px;
+            height: 170px;
             width: 100%;
+            cursor: pointer;
+            transform: rotate(-0.5deg);
+            transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
         }
         .sorsol-btn-block:hover {
-            background-color: #218838;
+            transform: rotate(0.4deg) translateY(-2px);
+            box-shadow: 5px 6px 0 var(--ink);
         }
         .sorsol-btn-block:active {
             transform: scale(0.98);
+            box-shadow: 2px 2px 0 var(--ink);
         }
 
-        /* JOBB OLDAL */
-        .right-col {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .module-label {
+            font-size: 1.15rem;
+            font-weight: 700;
+            min-height: 24px;
+        }
+        .dice-status {
+            font-size: var(--fs-base);
+            font-weight: 600;
+            color: var(--ink);
         }
 
         .dice-box {
-            background-color: #fff8e1;
-            border: 2px dashed #ff9800;
-            border-radius: 10px;
-            padding: 20px 15px;
+            background-color: var(--card);
+            border: 2.5px solid var(--ink);
+            border-radius: var(--wobble-c);
+            box-shadow: 4px 4px 0 var(--ink);
+            padding: 15px;
             text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 180px;
-            box-sizing: border-box;
-        }
-
-        .module-icon {
-            font-size: 3.5rem;
-            line-height: 1;
-            user-select: none;
+            gap: 8px;
+            height: 170px;
+            transform: rotate(0.4deg);
         }
         .dice-icon {
             cursor: pointer;
             transition: transform 0.2s, opacity 0.2s;
+            line-height: 0;
         }
-        .dice-icon:hover:not(.disabled) {
-            transform: scale(1.15);
-        }
-        .dice-icon.disabled {
-            cursor: not-allowed;
-            opacity: 0.4;
-            transform: none !important;
-        }
-
-        .module-label {
-            font-size: var(--fs-header);
-            font-weight: bold;
-            margin-top: 10px;
-            min-height: 24px;
-        }
-        .dice-status {
-            color: #495057;
+        .dice-icon:hover:not(.disabled) { transform: scale(1.1) rotate(6deg); }
+        .dice-icon.disabled { cursor: not-allowed; opacity: 0.5; transform: none !important; }
+        .dice-icon.rolling { animation: dice-shake 0.45s ease-in-out infinite; }
+        .dice-icon svg .die-line { stroke: var(--ink); transition: stroke 0.2s; }
+        .dice-icon svg .die-dot { fill: var(--ink); transition: fill 0.2s; }
+        .dice-icon.success svg .die-line { stroke: var(--green); }
+        .dice-icon.success svg .die-dot { fill: var(--green); }
+        @keyframes dice-shake {
+            0%   { transform: rotate(0deg) translateX(0); }
+            25%  { transform: rotate(-14deg) translateX(-4px); }
+            50%  { transform: rotate(10deg) translateX(3px) translateY(-3px); }
+            75%  { transform: rotate(-8deg) translateX(-2px); }
+            100% { transform: rotate(0deg) translateX(0); }
         }
 
-        /* JÁTÉKOSOK ÉS KÁRTYA KONTÉNER */
+        /* ============ DOBOZOK (KÁRTYA ÉS JÁTÉKOSOK) ============ */
+        .players-container, .result-box {
+            min-height: 280px;
+            background-color: var(--card);
+            border: 2.5px solid var(--ink);
+            box-shadow: 4px 4px 0 var(--ink);
+            padding: 16px;
+            min-width: 0;
+        }
+
         .players-container {
-            background-color: #fffde7;
-            border: 2px solid #ffcc00;
-            border-radius: 10px;
-            padding: 15px;
-            box-sizing: border-box;
+            border-radius: var(--wobble-a);
+            transform: rotate(-0.3deg);
+        }
+
+        .result-box {
+            position: relative;
+            border-radius: var(--wobble-b);
+            transform: rotate(0.5deg);
+            word-break: break-word;
+        }
+
+        /* Ragasztószalag-dekoráció a kártya tetején */
+        .result-box::before {
+            content: "";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            width: 96px;
+            height: 24px;
+            transform: translateX(-50%) rotate(-2deg);
+            background: var(--blue-soft);
+            border: 1px solid var(--ink);
+            border-radius: 2px;
         }
 
         .section-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             margin-bottom: 12px;
-            border-bottom: 1px solid #ffe082;
-            padding-bottom: 6px;
+            border-bottom: 2px dashed var(--ink);
+            padding-bottom: 8px;
+            min-height: 36px;
         }
-
         .section-title-text {
-            font-weight: bold;
-            color: #b78103;
-            font-size: var(--fs-header);
+            font-family: var(--font-hand);
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: 0.5px;
+            color: var(--ink);
             margin: 0;
             text-transform: uppercase;
         }
-
-        .header-actions {
-            display: flex;
-            gap: 12px;
+        .header-actions { 
+            display: flex; 
+            gap: 12px; 
+            align-items: center;
+            min-width: 140px;
+            justify-content: flex-end;
         }
 
-        .save-edit-link {
-            font-size: var(--fs-base);
-            color: #007bff;
+        .save-edit-link, .reset-link {
+            font-size: 0.85rem;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: bold;
             text-decoration: underline;
+            text-decoration-style: wavy;
+            text-underline-offset: 3px;
         }
-        .save-edit-link:hover {
-            color: #0056b3;
-        }
+        .save-edit-link { color: var(--blue); }
+        .save-edit-link:hover { color: var(--ink); }
+        .reset-link { color: var(--red); }
+        .reset-link:hover { color: var(--ink); }
 
-        .reset-link {
-            font-size: var(--fs-base);
-            color: #dc3545;
-            cursor: pointer;
-            font-weight: bold;
-            text-decoration: underline;
-        }
-        .reset-link:hover {
-            color: #bd2130;
-        }
-
-        .players-list-box {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .players-list-box { display: flex; flex-direction: column; gap: 8px; }
 
         .item-row {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #ffffff;
+            background: var(--paper);
             padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid #e0e0e0;
-            min-height: 38px;
-            box-sizing: border-box;
-            transition: background-color 0.15s, border-color 0.15s;
+            border: 2px solid var(--ink);
+            border-radius: 12px 6px 14px 7px / 7px 14px 6px 12px;
+            min-height: 42px;
+            transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
+            min-width: 0;
         }
-
-        .item-row.dragging {
-            opacity: 0.4;
-            background-color: #e9ecef;
-            border: 2px dashed #007bff;
-        }
-
+        
+        /* Drag & Drop csak a fogantyúnál */
         .drag-handle {
             cursor: grab;
             user-select: none;
-            color: #aaa;
+            color: var(--ink);
             font-size: 1.1rem;
             line-height: 1;
-            padding: 0 2px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            flex-shrink: 0;
         }
-        .drag-handle:hover {
-            color: #333;
-        }
-        .drag-handle:active {
-            cursor: grabbing;
+        .drag-handle:hover { background-color: var(--blue-soft); }
+        .drag-handle:active { cursor: grabbing; }
+
+        .item-row.dragging {
+            opacity: 0.4;
+            background-color: var(--blue-soft);
+            border-style: dashed;
         }
 
         .item-row.dashed-empty {
-            border: 2px dashed #ff9800;
-            background-color: #fff9c4;
+            border: 2px dashed var(--ink);
+            background-color: var(--paper);
             cursor: pointer;
-            color: #8d6e63;
-            font-size: var(--fs-base);
+            color: var(--ink);
+            font-weight: 700;
             justify-content: center;
-            font-weight: bold;
         }
-        .item-row.dashed-empty:hover {
-            background-color: #fff59d;
-        }
+        .item-row.dashed-empty:hover { background-color: var(--blue-soft); }
 
         .row-num {
-            font-weight: bold;
-            color: #555;
-            font-size: var(--fs-base);
-            min-width: 20px;
+            font-family: var(--font-hand);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--ink);
+            min-width: 22px;
+            flex-shrink: 0;
         }
 
         .player-name-input {
             flex-grow: 1;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 5px 8px;
+            font-family: var(--font-body);
+            border: none;
+            border-bottom: 2px dashed var(--ink);
+            border-radius: 0;
+            background: transparent;
+            padding: 4px;
             font-size: var(--fs-base);
             outline: none;
-            box-sizing: border-box;
-            height: 28px;
+            height: 30px;
+            min-width: 0;
+            color: var(--ink);
         }
-        .player-name-input:focus {
-            border-color: #007bff;
-        }
+        .player-name-input:focus { border-bottom-color: var(--blue); border-bottom-style: solid; }
 
         .player-name-text {
             flex-grow: 1;
-            font-weight: bold;
-            font-size: var(--fs-base);
-            color: #333;
+            font-weight: 700;
+            color: var(--ink);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .player-score-badge {
-            background-color: #e2e8f0;
-            color: #2d3748;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: var(--fs-base);
-            font-weight: bold;
+            background-color: var(--blue-soft);
+            border: 1.5px solid var(--ink);
+            color: var(--ink);
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
-        .item-row.selectable {
-            cursor: pointer;
-        }
+        .item-row.selectable { cursor: pointer; }
         .item-row.selectable:hover {
-            background-color: #f1f8ff;
-            border-color: #007bff;
+            background-color: var(--blue-soft);
+            transform: translateX(2px);
         }
         .item-row.scored {
-            background-color: #d4edda !important;
-            border-color: #28a745 !important;
+            background-color: var(--green-soft) !important;
+            border-color: var(--green) !important;
+        }
+        .item-row.scored .player-score-badge {
+            background-color: var(--green);
+            color: var(--card);
+            border-color: var(--green);
         }
 
-        .result-box {
-            margin-top: 15px;
-            background-color: #ffffff;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #e0e0e0;
-            word-break: break-word;
-        }
+        .empty-hint { color: var(--ink); opacity: 0.7; }
 
         .card-words-container {
             display: flex;
@@ -364,166 +423,192 @@
             margin-top: 5px;
         }
         .card-word-item {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
+            background-color: var(--paper);
+            border: 2px solid var(--ink);
+            border-radius: 6px 14px 7px 12px / 12px 7px 14px 6px;
             padding: 6px 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: var(--fs-base);
-            color: #333;
+            font-weight: 700;
+            color: var(--ink);
             cursor: pointer;
             text-align: left;
-            transition: all 0.2s;
+            transition: all 0.15s;
             user-select: none;
-            min-height: 38px;
-            box-sizing: border-box;
+            min-height: 40px;
             display: flex;
             align-items: center;
+            gap: 4px;
         }
         .card-word-item:hover {
-            border-color: #007bff;
-            background-color: #f0f7ff;
+            border-color: var(--blue);
+            background-color: var(--blue-soft);
+            transform: translateX(2px);
         }
         .card-word-item.selected-word {
-            background-color: #d4edda;
-            border-color: #28a745;
-            color: #155724;
-            box-shadow: 0 2px 6px rgba(40,167,69,0.2);
+            background-color: var(--green-soft);
+            border-color: var(--green);
+            color: var(--green);
+            box-shadow: 2px 2px 0 var(--green);
+        }
+
+        .game-over-box {
+            margin-top: 12px;
+            padding: 12px;
+            background-color: var(--green-soft);
+            border: 2px dashed var(--green);
+            border-radius: 14px 8px 16px 8px / 8px 16px 8px 14px;
+        }
+        .game-over-title {
+            font-family: var(--font-hand);
+            color: var(--red);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .game-over-winner {
+            color: var(--green);
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .warning-text { color: var(--red); font-weight: 700; }
+
+        /* ============ ALSÓ SZEKCIÓ / ELŐZMÉNYEK ============ */
+        .bottom-section { margin-top: 28px; }
+        .squiggle-divider {
+            display: block;
+            width: 100%;
+            height: 14px;
+            margin-bottom: 16px;
+            opacity: 0.6;
         }
 
         .toggle-btn {
-            background: none;
-            border: 1px solid #007bff;
-            color: #007bff;
-            padding: 8px 14px;
-            border-radius: 6px;
+            font-family: var(--font-body);
+            background: var(--card);
+            border: 2.5px solid var(--ink);
+            border-radius: var(--wobble-a);
+            box-shadow: 3px 3px 0 var(--ink);
+            color: var(--blue);
+            padding: 10px 14px;
             cursor: pointer;
             font-size: var(--fs-base);
-            font-weight: bold;
-            transition: all 0.2s;
+            font-weight: 700;
             width: 100%;
+            transition: background-color 0.15s, transform 0.15s;
         }
-        .toggle-btn:hover {
-            background-color: #007bff;
-            color: white;
-        }
+        .toggle-btn:hover { background-color: var(--blue-soft); transform: translateY(-1px); }
 
-        .bottom-section {
-            margin-top: 25px;
-            border-top: 2px solid #e9ecef;
-            padding-top: 15px;
-        }
         .collapsible-content {
             display: none;
             margin-top: 15px;
             padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            background-color: var(--card);
+            border: 2.5px solid var(--ink);
+            border-radius: var(--wobble-c);
+            box-shadow: 4px 4px 0 var(--ink);
             text-align: left;
         }
         .history-list {
             text-align: left;
-            max-height: 220px;
+            max-height: 240px;
             overflow-y: auto;
-            padding: 0;
+            padding: 0 4px 0 0;
             margin: 10px 0 0 0;
             list-style: none;
         }
         .history-card-item {
-            background: #ffffff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            background: var(--paper);
+            border: 2px solid var(--ink);
+            border-radius: 10px 5px 12px 6px / 6px 12px 5px 10px;
             padding: 10px;
             margin-bottom: 10px;
-            font-size: var(--fs-base);
         }
         .history-card-title {
-            font-weight: bold;
-            color: #007bff;
+            font-weight: 700;
+            color: var(--blue);
             margin-bottom: 6px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px dashed var(--ink);
             padding-bottom: 4px;
-            font-size: var(--fs-header);
         }
         .history-word {
             display: inline-block;
             margin: 2px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background-color: #f1f3f5;
-            color: #495057;
-            font-size: var(--fs-base);
+            padding: 2px 8px;
+            border-radius: 999px;
+            background-color: var(--blue-soft);
+            color: var(--ink);
+            font-size: 0.85rem;
         }
         .history-word.selected {
-            background-color: #ffecb3;
-            border: 1px solid #ffe082;
-            color: #856404;
-            font-weight: bold;
+            background-color: var(--green-soft);
+            border: 1.5px solid var(--green);
+            color: var(--green);
+            font-weight: 700;
         }
-        .clear-history-btn {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: var(--fs-base);
-            margin-top: 10px;
-            font-weight: bold;
-        }
+        .history-scored { margin-top: 6px; color: var(--green); font-weight: 700; font-size: 0.9rem; }
 
+        /* ============ SZABÁLYOK / ADATBÁZIS NÉZET ============ */
         .module-content {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            background-color: var(--card);
+            border: 2.5px solid var(--ink);
+            border-radius: var(--wobble-b);
+            box-shadow: 4px 4px 0 var(--ink);
+            padding: 22px;
         }
         .module-header-title {
-            font-size: var(--fs-title);
-            font-weight: bold;
-            color: #007bff;
-            margin-top: 0;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #007bff;
+            font-family: var(--font-hand);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0 0 15px;
+            border-bottom: 2.5px dashed var(--red);
             padding-bottom: 8px;
         }
 
         .rules-container {
-            font-size: var(--fs-base);
-            line-height: 1.5;
-            color: #212529;
-            max-height: 500px;
+            line-height: 1.55;
+            max-height: 560px;
             overflow-y: auto;
             padding-right: 10px;
         }
+        .rules-subtitle {
+            text-align: center;
+            color: var(--ink);
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        .rules-container h2 {
+            font-family: var(--font-hand);
+            text-align: center;
+            margin-bottom: 4px;
+            font-size: 2.2rem;
+            color: var(--ink);
+        }
         .rules-container h3 {
-            color: #d9534f;
-            border-bottom: 2px solid #d9534f;
-            padding-bottom: 3px;
-            margin-top: 16px;
-            margin-bottom: 8px;
+            display: inline-block;
             font-size: var(--fs-header);
             text-transform: uppercase;
+            color: var(--ink);
+            margin: 18px 0 8px;
+            padding: 2px 8px;
+            background: var(--blue-soft);
+            border-left: 3px solid var(--blue);
+            border-radius: 4px;
         }
         .rules-container h4 {
-            color: #0275d8;
-            margin-top: 12px;
-            margin-bottom: 4px;
+            color: var(--blue);
+            margin: 14px 0 4px;
             font-size: var(--fs-header);
         }
         .rules-container ul, .rules-container ol {
-            padding-left: 20px;
-            margin-top: 4px;
-            margin-bottom: 10px;
+            padding-left: 22px;
+            margin: 4px 0 10px;
         }
         .rules-box {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
+            background-color: var(--paper);
+            border-left: 4px solid var(--red);
+            border-radius: 4px;
             padding: 10px;
             margin: 10px 0;
-            border-radius: 4px;
-            font-size: var(--fs-base);
         }
 
         .db-toolbar {
@@ -532,59 +617,82 @@
             flex-wrap: wrap;
             margin-bottom: 12px;
         }
-
         .file-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background-color: #007bff;
-            color: white;
-            padding: 8px 14px;
-            border-radius: 6px;
+            font-family: var(--font-body);
+            background-color: var(--blue);
+            color: var(--card);
+            padding: 8px 15px;
+            border: 2px solid var(--ink);
+            border-radius: 14px 7px 15px 7px / 7px 15px 7px 14px;
+            box-shadow: 2px 2px 0 var(--ink);
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
             font-size: var(--fs-base);
-            border: none;
-            transition: background-color 0.2s;
+            transition: background-color 0.15s, transform 0.15s;
         }
-        .file-btn:hover {
-            background-color: #0056b3;
-        }
-        .file-btn.append-btn {
-            background-color: #28a745;
-        }
-        .file-btn.append-btn:hover {
-            background-color: #218838;
-        }
-        .file-btn.reset-btn {
-            background-color: #dc3545;
-        }
-        .file-btn.reset-btn:hover {
-            background-color: #bd2130;
+        .file-btn:hover { transform: translateY(-1px); }
+        .file-btn.append-btn { background-color: var(--green); }
+        .file-btn.reset-btn { background-color: var(--red); }
+
+        input[type="file"] { display: none; }
+
+        .db-hint { margin-top: 5px; color: var(--ink); opacity: 0.8; }
+        .db-hint code {
+            background: var(--blue-soft);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
         }
 
-        input[type="file"] {
-            display: none;
-        }
         textarea {
             width: 100%;
             height: 380px;
             padding: 12px;
-            border: 2px dashed #cccccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: var(--fs-base);
+            border: 2.5px dashed var(--ink);
+            border-radius: 14px 8px 16px 8px / 8px 16px 8px 14px;
+            background: var(--paper);
+            color: var(--ink);
+            font-size: 0.9rem;
             font-family: monospace;
             resize: vertical;
+            outline: none;
+        }
+        textarea:focus { border-color: var(--blue); border-style: solid; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- FEJLÉC ÉS FIX MÉRETŰ JOBB FELSŐ GOMBOK -->
+    <!-- FEJLÉC -->
     <div class="header">
-        <h2 class="title">🎯 FirkaFUTAM</h2>
+        <div class="brand">
+            <svg class="brand-pencil" width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+                <g fill="none" stroke="#100D0F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+                    <path d="M12 34 L30 10 Q32 7 35 9 L38 12 Q40 14 38 17 L19 40 Z" fill="#FFFFFF"/>
+                    <path d="M12 34 L13.5 40.5 L19 40" fill="#2D8C55"/>
+                    <path d="M30 13 L36 19"/>
+                </g>
+                <path d="M6 43 q6 -4 12 0" fill="none" stroke="#009ADB" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <h1 class="title">
+                Firka<span class="accent">FUTAM</span>
+                <svg class="underline-squiggle" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M2 8 q12 -8 25 0 q13 8 25 0 q13 -8 25 0 q13 8 25 0 q13 -8 25 0 q13 8 25 0 q13 -8 25 0 q11 7 21 1"
+                          fill="none" stroke="#C95627" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+            </h1>
+        </div>
         <div class="top-nav">
             <button id="btnRules" class="nav-btn" onclick="switchView('rules')">📖 Játékszabályok</button>
             <button id="btnDb" class="nav-btn" onclick="switchView('db')">📝 Kártyaadatbázis</button>
@@ -597,32 +705,47 @@
             <!-- BAL OLDAL -->
             <div class="left-col">
                 <button class="sorsol-btn-block" onclick="sorsolas()">
-                    <div class="module-icon">🎴</div>
+                    <svg width="66" height="60" viewBox="0 0 66 60" aria-hidden="true">
+                        <g fill="none" stroke="#100D0F" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+                            <path d="M8 16 Q6 10 12 10 L30 8 Q35 8 35 14 L37 46 Q37 52 31 52 L14 54 Q8 54 8 48 Z"
+                                  fill="#FFFFFF" transform="rotate(-8 22 31)"/>
+                            <path d="M28 12 Q27 6 33 6 L51 6 Q57 6 57 12 L57 46 Q57 52 51 52 L34 52 Q28 52 28 46 Z" fill="#FFFFFF"/>
+                            <path d="M34 16 h16 M34 24 h16 M34 32 h11"/>
+                            <circle cx="49" cy="41" r="4.5" fill="#009ADB" stroke="#100D0F" stroke-width="2"/>
+                        </g>
+                    </svg>
                     <div class="module-label">Kártya sorsolása!</div>
                 </button>
-                
+
                 <div class="result-box" id="resultDisplay">
                     <div class="section-header-row">
-                        <span class="section-title-text">KÁRTYA</span>
+                        <span class="section-title-text">Kártya</span>
                     </div>
-                    <span style="color: #666; font-size: var(--fs-base);">Nyomj a gombra egy kártya húzásához!</span>
+                    <span class="empty-hint">Nyomj a zöld gombra egy kártya húzásához!</span>
                 </div>
             </div>
 
             <!-- JOBB OLDAL -->
             <div class="right-col">
                 <div class="dice-box">
-                    <div class="module-icon dice-icon" id="diceIcon" onclick="rollDice()" title="Kattints a dobáshoz!">🎲</div>
+                    <div class="dice-icon" id="diceIcon" onclick="rollDice()" title="Kattints a dobáshoz!" role="button" tabindex="0"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rollDice();}">
+                        <svg width="62" height="62" viewBox="0 0 64 64" aria-label="Dobókocka">
+                            <path class="die-line" d="M12 15 Q10 8 17 8 L48 7 Q56 6 55 14 L56 47 Q57 55 49 55 L16 56 Q8 57 9 49 Z"
+                                  fill="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+                            <circle class="die-dot" cx="32" cy="32" r="6.5"/>
+                        </svg>
+                    </div>
                     <div class="module-label dice-status" id="diceResultDisplay">Kattints a kockára a dobáshoz!</div>
                 </div>
 
                 <!-- JÁTÉKOSOK BLOKK -->
                 <div class="players-container">
                     <div class="section-header-row">
-                        <span class="section-title-text">JÁTÉKOSOK</span>
+                        <span class="section-title-text">Játékosok</span>
                         <div class="header-actions">
-                            <span id="resetLink" class="reset-link" style="display: none;" onclick="resetAllPlayers()">ALAPHELYZET</span>
-                            <span id="saveEditLink" class="save-edit-link" onclick="toggleSaveEditPlayers()">MENTÉS</span>
+                            <span id="resetLink" class="reset-link" style="display: none;" onclick="resetAllPlayers()">Alaphelyzet</span>
+                            <span id="saveEditLink" class="save-edit-link" onclick="toggleSaveEditPlayers()">Mentés</span>
                         </div>
                     </div>
                     <div id="playersListBox" class="players-list-box">
@@ -634,36 +757,40 @@
 
         <!-- ALSÓ SZEKCIÓ -->
         <div class="bottom-section">
+            <svg class="squiggle-divider" viewBox="0 0 800 14" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M2 8 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q20 -10 40 0 q20 10 40 0 q18 9 36 2"
+                      fill="none" stroke="#100D0F" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+
             <button class="toggle-btn" onclick="toggleHistorySection(this)">
                 📜 Előzmények (megnyitás)
             </button>
 
             <div id="historySection" class="collapsible-content">
-                <div id="historyCount" style="font-size: var(--fs-base); color: #495057; font-weight: bold;">📜 Kisorsolt kártyák (0):</div>
+                <div id="historyCount" style="font-weight: 700;">📜 Kisorsolt kártyák (0):</div>
                 <ul id="historyList" class="history-list">
-                    <li style="color: #888; font-size: var(--fs-base);">Még nincs kisorsolt kártya.</li>
+                    <li style="color: var(--ink); opacity: 0.7;">Még nincs kisorsolt kártya.</li>
                 </ul>
-                <button class="clear-history-btn" onclick="clearHistory()">🔄 Előzmények törlése</button>
             </div>
         </div>
     </div>
 
-    <!-- 2. JÁTÉKSZABÁLYOK TELJES NÉZET -->
+    <!-- 2. JÁTÉKSZABÁLYOK NÉZET -->
     <div id="rulesView" class="view-panel">
         <div class="module-content">
             <div class="module-header-title">📖 Játékszabályok</div>
             <div class="rules-container">
-                <h2 style="text-align: center; margin-bottom: 0; font-size: var(--fs-title);">Firka FUTAM</h2>
-                <div style="text-align: center; font-size: var(--fs-base); color: #666; margin-bottom: 15px;">
+                <h2>Firka FUTAM</h2>
+                <div class="rules-subtitle">
                     BUVARP ÉS SVENSSON<br>
                     Egy pörgős rajzolós játék 3–7 játékos részére, 10 éves kor felett. Játékidő: 15–20 perc.
                 </div>
 
-                <h3>ÁTTEKINTÉS</h3>
+                <h3>Áttekintés</h3>
                 <p>Minden fordulóban lesz egy <strong>kitaláló</strong>, a többi játékos pedig a <strong>rajzolók</strong> szerepét töltik be. A rajzolók megpróbálják a megadott szót minél gyorsabban és pontosabban lerajzolni. A kitalálónak az lesz a feladata, hogy kitalálja ezt a szót, úgy, hogy egyesével haladva megnézi a rajzokat, kezdve annak a játékosnak a rajzával, aki elsőként fejezte be a rajzolást. Akinek a rajza alapján a kitalálónak sikerül rájönnie a szóra, az kap egy pontot, ahogyan a kitaláló is.</p>
                 <p>A játék végén a legtöbb ponttal rendelkező játékos lesz a győztes.</p>
 
-                <h3>A JÁTÉK TARTOZÉKAI</h3>
+                <h3>A játék tartozékai</h3>
                 <ul>
                     <li>7 Rajztábla</li>
                     <li>7 Filctoll</li>
@@ -673,7 +800,7 @@
                     <li>1 Dobókocka (csak egy oldalán található szimbólum)</li>
                 </ul>
 
-                <h3>A JÁTÉK ELŐKÉSZÜLETEI</h3>
+                <h3>A játék előkészületei</h3>
                 <ol>
                     <li><strong>Keverjétek meg a kártyákat!</strong> Alkossatok egy közös paklit úgy, hogy a pakliba játékosonként két lap kerüljön, majd tegyétek ezt az asztal egyik felére!<br>
                     <em>PÉLDA: Egy 5 fős játékban 10 lap kerül a közös pakliba.</em>
@@ -684,7 +811,7 @@
                     <div class="rules-box"><strong>3 fős játék esetén:</strong> Tegyétek vissza a hengert a dobozba (csak a kockát fogjátok használni).</div></li>
                 </ol>
 
-                <h3>A JÁTÉK MENETE</h3>
+                <h3>A játék menete</h3>
                 <p>Az első fordulóban a legidősebb játékos lesz a kitaláló. Minden fordulóban a következő lépéseket hajtsátok végre, a megadott sorrendben:</p>
 
                 <h4>1. SZÓ FELFEDÉSE</h4>
@@ -698,37 +825,39 @@
                 </ol>
 
                 <h4>3. TALÁLGATÁS ÉS PONTOZÁS</h4>
-                <p>A kitaláló kinyithatja a szemét, majd megkezdi a tippeket.</p>
+                <p>A kitaláló kinyithatja a szemét, majd megkezdi a tippeket. Elsőként annak a rajzolónak a rajzát nézi meg, aki a hengert ragadta meg, ezután sorban következnek azok, akik hamarabb fejezték be a rajzolást. Ha a kitaláló egy rajz alapján helyesen kimondja a szót, a forduló véget ér: a rajz készítője és a kitaláló is kap <strong>1-1 pontot</strong>.</p>
+
+                <h4>4. A FORDULÓ VÉGE</h4>
+                <p>A következő fordulóban a kitalálótól balra ülő játékos lesz az új kitaláló. A játék akkor ér véget, amikor elfogy a közös pakli. A győztes az a játékos, aki a legtöbb pontot gyűjtötte.</p>
             </div>
         </div>
     </div>
 
-    <!-- 3. KÁRTYA ADATBÁZIS TELJES NÉZET -->
+    <!-- 3. KÁRTYA ADATBÁZIS NÉZET -->
     <div id="dbView" class="view-panel">
         <div class="module-content">
             <div class="module-header-title">📝 Kártyaadatbázis (.txt)</div>
-            
+
             <div class="db-toolbar">
                 <label for="fileInput" class="file-btn">📁 Új .txt fájl betöltése</label>
                 <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
 
-                <label for="appendFileInput" class="file-btn append-btn">➕ .txt fájl hozzáadása a mostaniakhoz</label>
+                <label for="appendFileInput" class="file-btn append-btn">➕ .txt hozzáadása</label>
                 <input type="file" id="appendFileInput" accept=".txt" onchange="appendFile(event)">
 
                 <button class="file-btn reset-btn" onclick="resetDefaultWords()">🔄 Alaphelyzet</button>
             </div>
 
-            <p style="margin-top: 5px; font-size: var(--fs-base); color: #666;">
+            <p class="db-hint">
                 A kártyákat <code>---</code> sorok választják el egymástól. A szövegdoboz közvetlenül szerkeszthető!
             </p>
 
-            <textarea id="wordList"></textarea>
+            <textarea id="wordList" aria-label="Kártyaadatbázis"></textarea>
         </div>
     </div>
 </div>
 
 <script>
-    // TELJES ALAPÉRTELMEZETT KÁRTYA-ADATBÁZIS (56 KÁRTYA)
     const DEFAULT_WORD_DATABASE = `*HÁRFA
 SZEKÉR/HINTÓ
 SZOMSZÉD
@@ -1186,32 +1315,28 @@ KONYHA
 HŰTŐ/FRIZSIDER`;
 
     const textarea = document.getElementById('wordList');
-    
     let drawnCardRecords = [];
     let isDiceLocked = false;
     let isRolling = false;
     let activeView = 'game';
 
-    // JÁTÉKOSOK ÉS MENTÉSEK KEZELÉSE
     let players = [
         { name: "", score: 0 },
         { name: "", score: 0 },
         { name: "", score: 0 }
     ];
     let isPlayersSaved = false;
-
-    // DRAG & DROP SESEGÉDVÁLTOZÓK
     let draggedPlayerIdx = null;
 
-    // Kártya-adatbázis betöltése
-    const savedWords = localStorage.getItem('myWordDatabase');
-    if (savedWords) {
-        textarea.value = savedWords;
-    } else {
-        textarea.value = DEFAULT_WORD_DATABASE;
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
     }
 
-    // Előző játékról elmentett JÁTÉKOSNEVEK betöltése
+    const savedWords = localStorage.getItem('myWordDatabase');
+    textarea.value = savedWords || DEFAULT_WORD_DATABASE;
+
     const savedPlayerNames = localStorage.getItem('mySavedPlayerNames');
     if (savedPlayerNames) {
         try {
@@ -1220,29 +1345,21 @@ HŰTŐ/FRIZSIDER`;
                 players = parsedNames.map(name => ({ name: name, score: 0 }));
                 isPlayersSaved = true;
             }
-        } catch(e) {}
+        } catch (e) {}
     }
 
     renderPlayersUI();
 
-    // Lépésszám kiszámítása: 3-4 főnél fixen 12 húzás, felette játékosszám * 2
     function getMaxDraws() {
         const count = players.length;
-        if (count <= 4) {
-            return 12;
-        }
-        return count * 2;
+        return count <= 4 ? 12 : count * 2;
     }
 
     function switchView(targetView) {
         const btnRules = document.getElementById('btnRules');
         const btnDb = document.getElementById('btnDb');
 
-        if (activeView === targetView) {
-            activeView = 'game';
-        } else {
-            activeView = targetView;
-        }
+        activeView = (activeView === targetView) ? 'game' : targetView;
 
         document.getElementById('gameView').classList.remove('active-view');
         document.getElementById('rulesView').classList.remove('active-view');
@@ -1258,11 +1375,11 @@ HŰTŐ/FRIZSIDER`;
         } else if (activeView === 'rules') {
             document.getElementById('rulesView').classList.add('active-view');
             btnRules.classList.add('active');
-            btnRules.innerText = '🔙 Vissza';
+            btnRules.innerText = '🔙 Vissza a játékhoz';
         } else if (activeView === 'db') {
             document.getElementById('dbView').classList.add('active-view');
             btnDb.classList.add('active');
-            btnDb.innerText = '🔙 Vissza';
+            btnDb.innerText = '🔙 Vissza a játékhoz';
         }
     }
 
@@ -1277,7 +1394,6 @@ HŰTŐ/FRIZSIDER`;
         }
     }
 
-    /* KÁRTYAADATBÁZIS FÁJLKEZELÉS */
     function loadFile(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1330,14 +1446,13 @@ HŰTŐ/FRIZSIDER`;
 
     function toggleSaveEditPlayers() {
         if (!isPlayersSaved) {
-            // MENTÉS
             syncInputValuesToPlayers();
-            let newPlayers = [];
+            const newPlayers = [];
 
             players.forEach(p => {
                 const val = p.name ? p.name.trim() : "";
                 if (val !== "") {
-                    newPlayers.push({ name: val, score: 0 });
+                    newPlayers.push({ name: val, score: p.score || 0 });
                 }
             });
 
@@ -1351,9 +1466,7 @@ HŰTŐ/FRIZSIDER`;
 
             const namesToSave = players.map(p => p.name);
             localStorage.setItem('mySavedPlayerNames', JSON.stringify(namesToSave));
-
         } else {
-            // EDITÁLÁS
             isPlayersSaved = false;
         }
 
@@ -1383,17 +1496,15 @@ HŰTŐ/FRIZSIDER`;
             players[index].name = val;
         }
 
-        if (val.trim() === "") {
-            if (players.length > 3) {
-                players.splice(index, 1);
-                renderPlayersUI();
-                const remainingInputs = document.querySelectorAll('.player-name-input');
-                if (remainingInputs.length > 0) {
-                    const targetIdx = Math.min(index, remainingInputs.length - 1);
-                    remainingInputs[targetIdx].focus();
-                }
-                return;
+        if (val.trim() === "" && players.length > 3) {
+            players.splice(index, 1);
+            renderPlayersUI();
+            const remainingInputs = document.querySelectorAll('.player-name-input');
+            if (remainingInputs.length > 0) {
+                const targetIdx = Math.min(index, remainingInputs.length - 1);
+                remainingInputs[targetIdx].focus();
             }
+            return;
         }
 
         const resetLink = document.getElementById('resetLink');
@@ -1403,7 +1514,7 @@ HŰTŐ/FRIZSIDER`;
         }
     }
 
-    /* DRAG & DROP FUNKCIÓK EDITÁLÁS MÓDBAN */
+    /* DRAG & DROP FUNKCIÓK */
     function syncInputValuesToPlayers() {
         const inputs = document.querySelectorAll('.player-name-input');
         inputs.forEach((input, idx) => {
@@ -1417,21 +1528,18 @@ HŰTŐ/FRIZSIDER`;
         syncInputValuesToPlayers();
         draggedPlayerIdx = idx;
         e.dataTransfer.effectAllowed = 'move';
-        e.currentTarget.classList.add('dragging');
+        const row = e.target.closest('.item-row');
+        if (row) row.classList.add('dragging');
     }
 
     function handleDragOver(e) {
-        if (e.preventDefault) {
-            e.preventDefault();
-        }
+        e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         return false;
     }
 
     function handleDrop(e, targetIdx) {
-        if (e.stopPropagation) {
-            e.stopPropagation();
-        }
+        e.stopPropagation();
         if (draggedPlayerIdx !== null && draggedPlayerIdx !== targetIdx) {
             syncInputValuesToPlayers();
             const movedItem = players.splice(draggedPlayerIdx, 1)[0];
@@ -1442,13 +1550,14 @@ HŰTŐ/FRIZSIDER`;
     }
 
     function handleDragEnd(e) {
-        e.currentTarget.classList.remove('dragging');
+        const row = e.target.closest('.item-row');
+        if (row) row.classList.remove('dragging');
         draggedPlayerIdx = null;
     }
 
     function togglePlayerScore(index) {
         if (!isPlayersSaved || drawnCardRecords.length === 0) return;
-        
+
         const currentCardRecord = drawnCardRecords[drawnCardRecords.length - 1];
         if (!currentCardRecord.scoredPlayers) {
             currentCardRecord.scoredPlayers = [];
@@ -1471,9 +1580,8 @@ HŰTŐ/FRIZSIDER`;
 
         renderPlayersUI();
         updateHistoryUI();
-        
-        const maxDraws = getMaxDraws();
-        if (drawnCardRecords.length >= maxDraws) {
+
+        if (drawnCardRecords.length >= getMaxDraws()) {
             renderGameOver();
         }
     }
@@ -1486,10 +1594,10 @@ HŰTŐ/FRIZSIDER`;
         const hasAnyPlayerName = players.some(p => p.name && p.name.trim() !== "");
 
         if (isPlayersSaved) {
-            saveEditLink.innerText = "EDITÁLÁS";
+            saveEditLink.innerText = "Szerkesztés";
             resetLink.style.display = "none";
         } else {
-            saveEditLink.innerText = "MENTÉS";
+            saveEditLink.innerText = "Mentés";
             resetLink.style.display = hasAnyPlayerName ? "inline" : "none";
         }
 
@@ -1497,16 +1605,16 @@ HŰTŐ/FRIZSIDER`;
 
         players.forEach((p, idx) => {
             const num = idx + 1;
+            const safeName = esc(p.name);
             if (!isPlayersSaved) {
                 html += `
-                    <div class="item-row" draggable="true" 
-                         ondragstart="handleDragStart(event, ${idx})" 
-                         ondragover="handleDragOver(event)" 
-                         ondrop="handleDrop(event, ${idx})" 
-                         ondragend="handleDragEnd(event)">
-                        <span class="drag-handle" title="Fogd meg és húzd a sorrend megváltoztatásához">⋮⋮</span>
+                    <div class="item-row" ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${idx})">
+                        <span class="drag-handle" draggable="true"
+                              ondragstart="handleDragStart(event, ${idx})"
+                              ondragend="handleDragEnd(event)"
+                              title="Fogd meg a mozgatáshoz">⋮⋮</span>
                         <span class="row-num">${num}.</span>
-                        <input type="text" class="player-name-input" value="${p.name}" oninput="updatePlayerNameLocally(${idx}, this.value)" placeholder="Játékos neve">
+                        <input type="text" class="player-name-input" value="${safeName}" oninput="updatePlayerNameLocally(${idx}, this.value)" placeholder="Játékos neve">
                         <span class="player-score-badge">${p.score} pont</span>
                     </div>
                 `;
@@ -1523,9 +1631,9 @@ HŰTŐ/FRIZSIDER`;
                 const scoredClass = isScoredInCurrentCard ? "scored" : "";
 
                 html += `
-                    <div class="item-row ${selectableClass} ${scoredClass}" ${drawnCardRecords.length > 0 ? `onclick="togglePlayerScore(${idx})"` : ''} title="${drawnCardRecords.length > 0 ? 'Kattints a pontért/pont visszavonásához' : ''}">
+                    <div class="item-row ${selectableClass} ${scoredClass}" ${drawnCardRecords.length > 0 ? `onclick="togglePlayerScore(${idx})"` : ''} title="${drawnCardRecords.length > 0 ? 'Kattints a pontadáshoz/visszavonáshoz' : ''}">
                         <span class="row-num">${num}.</span>
-                        <span class="player-name-text">${p.name}</span>
+                        <span class="player-name-text">${safeName}</span>
                         <span class="player-score-badge">${p.score} pont</span>
                     </div>
                 `;
@@ -1535,7 +1643,7 @@ HŰTŐ/FRIZSIDER`;
         if (!isPlayersSaved && players.length < 7) {
             html += `
                 <div class="item-row dashed-empty" onclick="addEmptyPlayerRow()">
-                    + Új játékos hozzáadása (Max 7)
+                    ✏️ Új játékos hozzáadása (max 7)
                 </div>
             `;
         }
@@ -1545,7 +1653,7 @@ HŰTŐ/FRIZSIDER`;
 
     function sorsolas() {
         if (!isPlayersSaved) {
-            alert("Kérlek, először mentsd el a játékosokat a MENTÉS gombra kattintva!");
+            alert("Kérlek, először mentsd el a játékosokat a Mentés gombra kattintva!");
             return;
         }
 
@@ -1564,9 +1672,9 @@ HŰTŐ/FRIZSIDER`;
         if (allCards.length === 0) {
             document.getElementById('resultDisplay').innerHTML = `
                 <div class="section-header-row">
-                    <span class="section-title-text">KÁRTYA</span>
+                    <span class="section-title-text">Kártya</span>
                 </div>
-                <span style="color:#dc3545; font-weight:bold; font-size: var(--fs-base);">⚠️ Tölts be kártyákat az adatbázisba!</span>`;
+                <span class="warning-text">⚠️ Tölts be kártyákat az adatbázisba!</span>`;
             return;
         }
 
@@ -1596,13 +1704,10 @@ HŰTŐ/FRIZSIDER`;
         drawnCardRecords.push(record);
 
         resetDice();
-        
+        renderActiveCard(record);
+
         if (drawnCardRecords.length === maxDraws) {
-            renderActiveCard(record);
-            const resultBox = document.getElementById('resultDisplay');
-            resultBox.innerHTML += getGameOverHtml();
-        } else {
-            renderActiveCard(record);
+            document.getElementById('resultDisplay').innerHTML += getGameOverHtml();
         }
 
         updateHistoryUI();
@@ -1613,7 +1718,7 @@ HŰTŐ/FRIZSIDER`;
         const resultBox = document.getElementById('resultDisplay');
         resultBox.innerHTML = `
             <div class="section-header-row">
-                <span class="section-title-text">KÁRTYA</span>
+                <span class="section-title-text">Kártya</span>
             </div>
             ${getGameOverHtml()}
         `;
@@ -1634,21 +1739,20 @@ HŰTŐ/FRIZSIDER`;
 
         let winnerText = "";
         if (maxScore > 0) {
+            const safeWinners = winners.map(esc);
             if (winners.length === 1) {
-                winnerText = `👑 A győztes: <strong style="font-size: 1.1em;">${winners[0]}</strong> (${maxScore} ponttal)! 🎉`;
+                winnerText = `👑 A győztes: <strong>${safeWinners[0]}</strong> (${maxScore} ponttal)! 🎉`;
             } else {
-                winnerText = `👑 Döntetlen! A győztesek: <strong style="font-size: 1.1em;">${winners.join(', ')}</strong> (${maxScore} ponttal)! 🎉`;
+                winnerText = `👑 Döntetlen! Győztesek: <strong>${safeWinners.join(', ')}</strong> (${maxScore} ponttal)! 🎉`;
             }
         } else {
             winnerText = `Senki sem szerzett pontot a játék során.`;
         }
 
         return `
-            <div style="margin-top: 10px; padding: 10px; background-color: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 8px;">
-                <div style="color: #dc3545; font-size: var(--fs-header); font-weight: bold;">A játéknak vége!</div>
-                <div style="color: #2e7d32; font-size: var(--fs-base); font-weight: bold; margin-top: 6px;">
-                    ${winnerText}
-                </div>
+            <div class="game-over-box">
+                <div class="game-over-title">A játéknak vége!</div>
+                <div class="game-over-winner">${winnerText}</div>
             </div>
         `;
     }
@@ -1657,39 +1761,39 @@ HŰTŐ/FRIZSIDER`;
         const display = document.getElementById('resultDisplay');
         const maxDraws = getMaxDraws();
         const drawNum = drawnCardRecords.length;
-        
-        // Kitaláló kiszámítása a játékosok sorrendje alapján
+
         const guesserIdx = (drawNum - 1) % players.length;
-        const guesserName = players[guesserIdx] ? players[guesserIdx].name : "???";
+        const guesserName = players[guesserIdx] ? esc(players[guesserIdx].name) : "???";
 
         let html = `
             <div class="section-header-row">
-                <span class="section-title-text">KÁRTYA (${drawNum} / ${maxDraws}. húzás) – 🤔 Kitaláló: ${guesserName}</span>
+                <span class="section-title-text">Kártya ${drawNum}/${maxDraws}</span>
+                <span style="font-weight: 700; color: var(--ink);">🤔 Kitaláló: <span style="color: var(--red);">${guesserName}</span></span>
             </div>
             <div class="card-words-container">`;
-        
+
         record.words.forEach((word, idx) => {
             const isSelected = record.selectedWord === word;
-            
+
             if (record.selectedWord !== null && !isSelected) {
-                return; 
+                return;
             }
 
             const activeClass = isSelected ? 'selected-word' : '';
             const checkIcon = isSelected ? ' ✔️' : '';
-            
+
             html += `<div class="card-word-item ${activeClass}" onclick="toggleWordSelection(${idx})">`;
-            html += `<span class="row-num">${idx + 1}.</span> ${word}${checkIcon}`;
+            html += `<span class="row-num">${idx + 1}.</span> ${esc(word)}${checkIcon}`;
             html += `</div>`;
         });
-        
+
         html += `</div>`;
         display.innerHTML = html;
     }
 
     function toggleWordSelection(wordIdx) {
         if (drawnCardRecords.length === 0) return;
-        
+
         const currentRecord = drawnCardRecords[drawnCardRecords.length - 1];
         const clickedWord = currentRecord.words[wordIdx];
 
@@ -1698,13 +1802,11 @@ HŰTŐ/FRIZSIDER`;
         } else {
             currentRecord.selectedWord = clickedWord;
         }
-        
+
         renderActiveCard(currentRecord);
-        
-        const maxDraws = getMaxDraws();
-        if (drawnCardRecords.length >= maxDraws) {
-            const display = document.getElementById('resultDisplay');
-            display.innerHTML += getGameOverHtml();
+
+        if (drawnCardRecords.length >= getMaxDraws()) {
+            document.getElementById('resultDisplay').innerHTML += getGameOverHtml();
         }
 
         updateHistoryUI();
@@ -1717,49 +1819,36 @@ HŰTŐ/FRIZSIDER`;
         historyCount.innerText = `📜 Kisorsolt kártyák (${drawnCardRecords.length}):`;
 
         if (drawnCardRecords.length === 0) {
-            historyList.innerHTML = '<li style="color: #888; font-size: var(--fs-base);">Még nincs kisorsolt kártya.</li>';
+            historyList.innerHTML = '<li style="color: var(--ink); opacity: 0.7;">Még nincs kisorsolt kártya.</li>';
             return;
         }
 
         const html = drawnCardRecords.slice().reverse().map((record, revIdx) => {
             const cardNum = drawnCardRecords.length - revIdx;
             const guesserIdx = (cardNum - 1) % players.length;
-            const guesserName = players[guesserIdx] ? players[guesserIdx].name : "???";
+            const guesserName = players[guesserIdx] ? esc(players[guesserIdx].name) : "???";
 
-            let wordsHtml = record.words.map((w, i) => {
+            const wordsHtml = record.words.map((w, i) => {
                 const isSelected = (w === record.selectedWord);
                 if (isSelected) {
-                    return `<span class="history-word selected">👉 <strong>${i+1}. ${w}</strong></span>`;
+                    return `<span class="history-word selected">👉 <strong>${i + 1}. ${esc(w)}</strong></span>`;
                 }
-                return `<span class="history-word">${i+1}. ${w}</span>`;
+                return `<span class="history-word">${i + 1}. ${esc(w)}</span>`;
             }).join(' ');
 
             let scoredHtml = "";
             if (record.scoredPlayers && record.scoredPlayers.length > 0) {
-                scoredHtml = `<div style="margin-top: 6px; font-size: var(--fs-base); color: #28a745; font-weight: bold;">Pontot kapott: ${record.scoredPlayers.join(', ')}</div>`;
+                scoredHtml = `<div class="history-scored">⭐ Pontot kapott: ${record.scoredPlayers.map(esc).join(', ')}</div>`;
             }
 
             return `<li class="history-card-item">
-                <div class="history-card-title">${cardNum}. Kisorsolt kártya <span style="font-weight: normal; font-size: 0.85em; color: #555;">(Kitaláló: <strong>${guesserName}</strong>)</span></div>
+                <div class="history-card-title">${cardNum}. Kisorsolt kártya <span style="font-weight: normal; font-size: 0.85em; color: var(--ink);">(Kitaláló: <strong>${guesserName}</strong>)</span></div>
                 <div>${wordsHtml}</div>
                 ${scoredHtml}
             </li>`;
         }).join('');
 
         historyList.innerHTML = html;
-    }
-
-    function clearHistory() {
-        drawnCardRecords = [];
-        players.forEach(p => p.score = 0);
-        updateHistoryUI();
-        renderPlayersUI();
-        document.getElementById('resultDisplay').innerHTML = `
-            <div class="section-header-row">
-                <span class="section-title-text">KÁRTYA</span>
-            </div>
-            <span style="color: #666; font-size: var(--fs-base);">Nyomj a gombra egy kártya húzásához!</span>`;
-        resetDice();
     }
 
     function rollDice() {
@@ -1769,23 +1858,25 @@ HŰTŐ/FRIZSIDER`;
         const display = document.getElementById('diceResultDisplay');
 
         isRolling = true;
+        diceIcon.classList.add('rolling');
         display.innerText = "Gurul a kocka...";
-        display.style.color = "#ff9800";
+        display.style.color = "var(--blue)";
 
         setTimeout(() => {
             const roll = Math.floor(Math.random() * 6) + 1;
+            diceIcon.classList.remove('rolling');
 
             if (roll === 6) {
-                display.innerText = "👍 (STOP! Megvan a szimbólum)";
-                display.style.color = "#28a745";
+                display.innerText = "👍 STOP! Megvan a szimbólum!";
+                display.style.color = "var(--green)";
                 isDiceLocked = true;
-                diceIcon.classList.add('disabled');
+                diceIcon.classList.add('disabled', 'success');
             } else {
-                display.innerText = "👎 (Nincs szimbólum, dobj újra!)";
-                display.style.color = "#dc3545";
+                display.innerText = "👎 Nincs szimbólum, dobj újra!";
+                display.style.color = "var(--red)";
             }
             isRolling = false;
-        }, 2000);
+        }, 1200);
     }
 
     function resetDice() {
@@ -1793,9 +1884,9 @@ HŰTŐ/FRIZSIDER`;
         isRolling = false;
         const diceIcon = document.getElementById('diceIcon');
         const display = document.getElementById('diceResultDisplay');
-        diceIcon.classList.remove('disabled');
+        diceIcon.classList.remove('disabled', 'success', 'rolling');
         display.innerText = "Kattints a kockára a dobáshoz!";
-        display.style.color = "#495057";
+        display.style.color = "var(--ink)";
     }
 </script>
 
