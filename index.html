@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CsengeCSATA! – Kártyasorsoló és Játékszabály</title>
+    <title>Firka FUTAM – Kártyasorsoló és Játékszabály</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✏️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -157,7 +157,7 @@
             min-width: 0;
         }
 
-        /* ============ SORSOLÓ GOMB & KOCKA (FIX MÉRET) ============ */
+        /* ============ SORSOLÓ GOMB & KOCKA ============ */
         .sorsol-btn-block {
             font-family: var(--font-body);
             background-color: var(--green);
@@ -235,7 +235,7 @@
             100% { transform: rotate(0deg) translateX(0); }
         }
 
-        /* ============ DOBOZOK (KÁRTYA ÉS JÁTÉKOSOK) ============ */
+        /* ============ DOBOZOK ============ */
         .players-container, .result-box {
             min-height: 280px;
             background-color: var(--card);
@@ -257,7 +257,6 @@
             word-break: break-word;
         }
 
-        /* Ragasztószalag-dekoráció a kártya tetején */
         .result-box::before {
             content: "";
             position: absolute;
@@ -326,7 +325,6 @@
             min-width: 0;
         }
         
-        /* Drag & Drop csak a fogantyúnál */
         .drag-handle {
             cursor: grab;
             user-select: none;
@@ -476,7 +474,7 @@
 
         .warning-text { color: var(--red); font-weight: 700; }
 
-        /* ============ ALSÓ SZEKCIÓ / ELŐZMÉNYEK ============ */
+        /* ============ ALSÓ SZEKCIÓ ============ */
         .bottom-section { margin-top: 28px; }
         .squiggle-divider {
             display: block;
@@ -1112,7 +1110,7 @@ RENDŐRSÉG
 VÍZISÍ
 ---
 GARDRÓB
-BŐR/PRÉM/BUNDA
+B B B B B B B B B B B B B B B B B B B B
 *TURBÁN
 BÚGÓCSIGA
 KABÁT
@@ -1157,7 +1155,7 @@ DISZKÓGÖMB
 *TITANIC
 PILLANGÓ/LEPKE
 HANGYABOLY
-SZÖCSKE
+SZÖKSKE
 ---
 TEHÉN
 BETÖRŐ/RABLÓ
@@ -1362,6 +1360,14 @@ HŰTŐ/FRIZSIDER`;
         return count <= 4 ? 12 : count * 2;
     }
 
+    function getMaxScoredPlayers() {
+        const count = players.length;
+        if (count <= 4) return 2;
+        if (count === 5) return 3;
+        if (count === 6) return 4;
+        return 5; // 7 játékos esetén
+    }
+
     function switchView(targetView) {
         const btnRules = document.getElementById('btnRules');
         const btnDb = document.getElementById('btnDb');
@@ -1532,7 +1538,6 @@ HŰTŐ/FRIZSIDER`;
         }
     }
 
-    /* DRAG & DROP FUNKCIÓK */
     function syncInputValuesToPlayers() {
         const inputs = document.querySelectorAll('.player-name-input');
         inputs.forEach((input, idx) => {
@@ -1573,6 +1578,7 @@ HŰTŐ/FRIZSIDER`;
         draggedPlayerIdx = null;
     }
 
+    /* PONTOZÓ FUNKCIÓ A KITALÁLÓ VISSZAVONÁSI KORLÁTOZÁSÁVAL */
     function togglePlayerScore(index) {
         if (!isPlayersSaved || drawnCardRecords.length === 0 || isGameFinished) return;
 
@@ -1581,19 +1587,44 @@ HŰTŐ/FRIZSIDER`;
             currentCardRecord.scoredPlayers = [];
         }
 
+        const drawNum = drawnCardRecords.length;
+        const guesserIdx = (drawNum - 1) % players.length;
+        const guesserPlayer = players[guesserIdx];
+
         const playerName = players[index].name;
         const alreadyHasPoint = currentCardRecord.scoredPlayers.includes(playerName);
+        const isGuesser = (index === guesserIdx || (guesserPlayer && playerName === guesserPlayer.name));
 
         if (alreadyHasPoint) {
+            // A Kitalálótól csak akkor vonható vissza a pont, ha ő az egyetlen kijelölt játékos
+            if (isGuesser && currentCardRecord.scoredPlayers.length > 1) {
+                alert("A kitalálótól csak akkor vonhatod vissza a pontot, ha rajta kívül már nincs más kijelölt játékos ebben a körben!");
+                return;
+            }
+
+            // Pont visszavonása
             currentCardRecord.scoredPlayers = currentCardRecord.scoredPlayers.filter(p => p !== playerName);
             players[index].score -= 1;
         } else {
-            if (currentCardRecord.scoredPlayers.length >= 5) {
-                alert("Egy körben maximum 5 játékos kaphat pontot!");
+            const isFirstSelectionInRound = (currentCardRecord.scoredPlayers.length === 0);
+            const maxScored = getMaxScoredPlayers();
+
+            // Ellenőrizzük, hogy a kitaláló is kap-e pontot automatikusan
+            const willAddGuesser = (isFirstSelectionInRound && !isGuesser && guesserPlayer && !currentCardRecord.scoredPlayers.includes(guesserPlayer.name));
+            const newCount = currentCardRecord.scoredPlayers.length + (willAddGuesser ? 2 : 1);
+
+            if (newCount > maxScored) {
+                alert(`${players.length} játékos esetén egy körben maximum ${maxScored} játékos kaphat pontot (a kitalálóval együtt)!`);
                 return;
             }
+
             currentCardRecord.scoredPlayers.push(playerName);
             players[index].score += 1;
+
+            if (willAddGuesser) {
+                currentCardRecord.scoredPlayers.push(guesserPlayer.name);
+                guesserPlayer.score += 1;
+            }
         }
 
         renderPlayersUI();
@@ -1711,7 +1742,6 @@ HŰTŐ/FRIZSIDER`;
 
         const maxDraws = getMaxDraws();
 
-        // Ha a 12. (vagy utolsó) körben vagyunk ÉS rányomunk a "Végeredmény" gombra:
         if (drawnCardRecords.length === maxDraws) {
             isGameFinished = true;
             renderGameOver();
