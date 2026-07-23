@@ -55,4 +55,4 @@ Nem igényel szerveroldali telepítést vagy `npm install`-t!
 
 1. **Klónozd vagy töltsd le a tárolót:**
    ```bash
-   git clone [https://github.com/felhasznalonev/firka-futam.git](https://github.com/felhasznalonev/firka-futam.git)
+   git clone https://github.com/1MB4R0SS4/CsengeCsata
