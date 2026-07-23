@@ -733,10 +733,13 @@
                 <div class="dice-box">
                     <div class="dice-icon" id="diceIcon" onclick="rollDice()" title="Kattints a dobáshoz!" role="button" tabindex="0"
                          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rollDice();}">
+                        <!-- MÓDOSÍTOTT 3 PÖTTYÖS DOBÓKOCKA SVG -->
                         <svg width="62" height="62" viewBox="0 0 64 64" aria-label="Dobókocka">
                             <path class="die-line" d="M12 15 Q10 8 17 8 L48 7 Q56 6 55 14 L56 47 Q57 55 49 55 L16 56 Q8 57 9 49 Z"
                                   fill="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
-                            <circle class="die-dot" cx="32" cy="32" r="6.5"/>
+                            <circle class="die-dot" cx="22" cy="42" r="4.5"/>
+                            <circle class="die-dot" cx="32" cy="32" r="4.5"/>
+                            <circle class="die-dot" cx="42" cy="22" r="4.5"/>
                         </svg>
                     </div>
                     <div class="module-label dice-status" id="diceResultDisplay">Kattints a kockára a dobáshoz!</div>
@@ -1365,7 +1368,7 @@ HŰTŐ/FRIZSIDER`;
         if (count <= 4) return 2;
         if (count === 5) return 3;
         if (count === 6) return 4;
-        return 5; // 7 játékos esetén
+        return 5;
     }
 
     function switchView(targetView) {
@@ -1578,7 +1581,6 @@ HŰTŐ/FRIZSIDER`;
         draggedPlayerIdx = null;
     }
 
-    /* PONTOZÓ FUNKCIÓ A KITALÁLÓ VISSZAVONÁSI KORLÁTOZÁSÁVAL */
     function togglePlayerScore(index) {
         if (!isPlayersSaved || drawnCardRecords.length === 0 || isGameFinished) return;
 
@@ -1596,20 +1598,17 @@ HŰTŐ/FRIZSIDER`;
         const isGuesser = (index === guesserIdx || (guesserPlayer && playerName === guesserPlayer.name));
 
         if (alreadyHasPoint) {
-            // A Kitalálótól csak akkor vonható vissza a pont, ha ő az egyetlen kijelölt játékos
             if (isGuesser && currentCardRecord.scoredPlayers.length > 1) {
                 alert("A kitalálótól csak akkor vonhatod vissza a pontot, ha rajta kívül már nincs más kijelölt játékos ebben a körben!");
                 return;
             }
 
-            // Pont visszavonása
             currentCardRecord.scoredPlayers = currentCardRecord.scoredPlayers.filter(p => p !== playerName);
             players[index].score -= 1;
         } else {
             const isFirstSelectionInRound = (currentCardRecord.scoredPlayers.length === 0);
             const maxScored = getMaxScoredPlayers();
 
-            // Ellenőrizzük, hogy a kitaláló is kap-e pontot automatikusan
             const willAddGuesser = (isFirstSelectionInRound && !isGuesser && guesserPlayer && !currentCardRecord.scoredPlayers.includes(guesserPlayer.name));
             const newCount = currentCardRecord.scoredPlayers.length + (willAddGuesser ? 2 : 1);
 
