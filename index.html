@@ -328,18 +328,20 @@
         .drag-handle {
             cursor: grab;
             user-select: none;
+            touch-action: none; /* FONTOS: Megakadályozza az oldal görgetését érintős húzáskor */
             color: var(--ink);
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             line-height: 1;
-            padding: 4px 6px;
+            padding: 6px 8px;
             border-radius: 4px;
             flex-shrink: 0;
+            background-color: rgba(0,0,0,0.03);
         }
         .drag-handle:hover { background-color: var(--blue-soft); }
-        .drag-handle:active { cursor: grabbing; }
+        .drag-handle:active { cursor: grabbing; background-color: var(--blue-soft); }
 
         .item-row.dragging {
-            opacity: 0.4;
+            opacity: 0.5;
             background-color: var(--blue-soft);
             border-style: dashed;
         }
@@ -733,7 +735,7 @@
                 <div class="dice-box">
                     <div class="dice-icon" id="diceIcon" onclick="rollDice()" title="Kattints a dobáshoz!" role="button" tabindex="0"
                          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();rollDice();}">
-                        <!-- MÓDOSÍTOTT 3 PÖTTYÖS DOBÓKOCKA SVG -->
+                        <!-- 3 PÖTTYÖS DOBÓKOCKA SVG -->
                         <svg width="62" height="62" viewBox="0 0 64 64" aria-label="Dobókocka">
                             <path class="die-line" d="M12 15 Q10 8 17 8 L48 7 Q56 6 55 14 L56 47 Q57 55 49 55 L16 56 Q8 57 9 49 Z"
                                   fill="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
@@ -1334,6 +1336,7 @@ HŰTŐ/FRIZSIDER`;
     ];
     let isPlayersSaved = false;
     let draggedPlayerIdx = null;
+    let touchDraggedIdx = null;
 
     function esc(s) {
         return String(s).replace(/[&<>"']/g, c => ({
@@ -1550,6 +1553,7 @@ HŰTŐ/FRIZSIDER`;
         });
     }
 
+    /* === ASZTALI DRAG & DROP ESEMÉNYEK === */
     function handleDragStart(e, idx) {
         syncInputValuesToPlayers();
         draggedPlayerIdx = idx;
@@ -1579,6 +1583,42 @@ HŰTŐ/FRIZSIDER`;
         const row = e.target.closest('.item-row');
         if (row) row.classList.remove('dragging');
         draggedPlayerIdx = null;
+    }
+
+    /* === MOBIL ÉRINTŐKÉPERNYŐS (TOUCH) DRAG & DROP ESEMÉNYEK === */
+    function handleTouchStart(e, idx) {
+        syncInputValuesToPlayers();
+        touchDraggedIdx = idx;
+        const row = e.target.closest('.item-row');
+        if (row) row.classList.add('dragging');
+    }
+
+    function handleTouchMove(e) {
+        if (touchDraggedIdx === null) return;
+        if (e.cancelable) e.preventDefault(); // Megakadályozza az oldal görgetését húzás közben
+
+        const touch = e.touches[0];
+        const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (!targetEl) return;
+
+        const targetRow = targetEl.closest('.item-row');
+        if (targetRow && targetRow.dataset.index !== undefined) {
+            const targetIdx = parseInt(targetRow.dataset.index, 10);
+            if (targetIdx !== touchDraggedIdx && !isNaN(targetIdx)) {
+                syncInputValuesToPlayers();
+                const movedItem = players.splice(touchDraggedIdx, 1)[0];
+                players.splice(targetIdx, 0, movedItem);
+                touchDraggedIdx = targetIdx;
+                renderPlayersUI();
+            }
+        }
+    }
+
+    function handleTouchEnd(e) {
+        if (touchDraggedIdx !== null) {
+            touchDraggedIdx = null;
+            renderPlayersUI();
+        }
     }
 
     function togglePlayerScore(index) {
@@ -1652,10 +1692,13 @@ HŰTŐ/FRIZSIDER`;
             const safeName = esc(p.name);
             if (!isPlayersSaved) {
                 html += `
-                    <div class="item-row" ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${idx})">
+                    <div class="item-row" data-index="${idx}" ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${idx})">
                         <span class="drag-handle" draggable="true"
                               ondragstart="handleDragStart(event, ${idx})"
                               ondragend="handleDragEnd(event)"
+                              ontouchstart="handleTouchStart(event, ${idx})"
+                              ontouchmove="handleTouchMove(event)"
+                              ontouchend="handleTouchEnd(event)"
                               title="Fogd meg a mozgatáshoz">⋮⋮</span>
                         <span class="row-num">${num}.</span>
                         <input type="text" class="player-name-input" value="${safeName}" oninput="updatePlayerNameLocally(${idx}, this.value)" placeholder="Játékos neve">
